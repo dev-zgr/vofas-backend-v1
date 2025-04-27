@@ -70,7 +70,19 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private RoleEnum roleEnum;
 
-    public UserEntity(){}
+    public UserEntity(){
+        this.firstName = "";
+        this.lastName = "";
+        this.email = "";
+        this.password = "";
+        this.addressFirstLine = "";
+        this.addressLine2 = "";
+        this.district = "";
+        this.city = "";
+        this.postalCode = "";
+        this.country = "";
+        this.roleEnum = null;
+    }
 
     public UserEntity(String firstName, String lastName, String email, String password, String addressFirstLine, String addressLine2, String district, String city, String postalCode, String country, RoleEnum roleEnum) {
         this.firstName = firstName;

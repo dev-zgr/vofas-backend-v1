@@ -1,8 +1,12 @@
 package org.example.vofasbackendv1.data_layer.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.example.vofasbackendv1.data_layer.enums.FeedbackMethodEnum;
 import org.example.vofasbackendv1.data_layer.enums.FeedbackStatusEnum;
 import org.example.vofasbackendv1.data_layer.enums.SentimentStateEnum;
 
@@ -12,26 +16,35 @@ import java.time.LocalDateTime;
 @Table(name = "voice_feedback_table")
 @Data
 @ToString
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class VoiceFeedbackEntity extends FeedbackEntity {
 
-    @Column(name = "file_path", length = 255)
+    @Column(name = "file_path")
+    @Size(max = 255)
+    @NotBlank
     private String filePath;
 
     @Column(name = "sent_for_transcription")
+    @NotBlank
     private LocalDateTime sentForTranscription;
 
     @Column(name = "received_from_transcription")
+    @NotBlank
     private LocalDateTime receivedFromTranscription;
 
-    public VoiceFeedbackEntity() {}
+    public VoiceFeedbackEntity() {
+        super();
+        this.filePath = "";
+        this.sentForTranscription = null;
+        this.receivedFromTranscription = null;
+    }
 
-    // Constructor of VoiceFeedbackEntity
     public VoiceFeedbackEntity(LocalDateTime feedbackDate, FeedbackStatusEnum feedbackStatus, String content,
-                               SentimentStateEnum sentiment, Long feedbackSourceId, String method, Long validationTokenId,
+                               SentimentStateEnum sentiment, FeedbackMethodEnum method, Long validationTokenId,
                                LocalDateTime sentToSentimentAnalysis, LocalDateTime receivedFromSentimentAnalysis,
                                String filePath, LocalDateTime sentForTranscription, LocalDateTime receivedFromTranscription) {
 
-        super(feedbackDate, feedbackStatus, content, sentiment, feedbackSourceId, method, validationTokenId,
+        super(feedbackDate, feedbackStatus, content, sentiment, method, validationTokenId,
                 sentToSentimentAnalysis, receivedFromSentimentAnalysis);
 
         this.filePath = filePath;

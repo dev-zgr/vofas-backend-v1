@@ -5,15 +5,19 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import org.example.vofasbackendv1.data_layer.enums.FeedbackMethodEnum;
 import org.example.vofasbackendv1.data_layer.enums.FeedbackStatusEnum;
 import org.example.vofasbackendv1.data_layer.enums.SentimentStateEnum;
 
 import java.time.LocalDateTime;
 
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString
+@Data
 @Entity
 @Table(name = "feedback_table")
-@Data
-@ToString
+@Inheritance(strategy = InheritanceType.JOINED)
 public class FeedbackEntity {
 
     @Id
@@ -31,7 +35,8 @@ public class FeedbackEntity {
     @Column(name = "feedback_status", nullable = false, length = 20)
     private FeedbackStatusEnum feedbackStatus;
 
-    @Column(name = "content", columnDefinition = "TEXT")
+    @Column(name = "content")
+    @Size(max = 1024)
     private String content;
 
     @Enumerated(EnumType.STRING)
@@ -39,14 +44,16 @@ public class FeedbackEntity {
     @Column(name = "sentiment", length = 20)
     private SentimentStateEnum sentiment;
 
+    @ManyToOne
     @NotNull
-    @Column(name = "feedback_source_id", nullable = false)
-    private Long feedbackSourceId;
+    @JoinColumn(name = "feedback_source_id", referencedColumnName = "feedback_source_id")
+    private FeedbackSourceEntity feedbackSource;
 
     @NotNull
     @Size(min = 3, max = 32)
     @Column(name = "method", nullable = false, length = 32)
-    private String method;
+    @Enumerated(EnumType.STRING)
+    private FeedbackMethodEnum method;
 
     @Column(name = "validation_token_id")
     private Long validationTokenId;
@@ -57,14 +64,24 @@ public class FeedbackEntity {
     @Column(name = "received_from_sentiment_analysis")
     private LocalDateTime receivedFromSentimentAnalysis;
 
-    public FeedbackEntity() {}
+    public FeedbackEntity() {
+        this.feedbackDate = LocalDateTime.now();
+        this.feedbackStatus = null;
+        this.content = "";
+        this.sentiment = SentimentStateEnum.NEUTRAL;
+        this.feedbackSource = null;
+        this.method = null;
+        this.validationTokenId = null;
+        this.sentToSentimentAnalysis = null;
+        this.receivedFromSentimentAnalysis = null;
+    }
 
-    public FeedbackEntity(LocalDateTime feedbackDate, FeedbackStatusEnum feedbackStatus, String content, SentimentStateEnum sentiment, Long feedbackSourceId, String method, Long validationTokenId, LocalDateTime sentToSentimentAnalysis, LocalDateTime receivedFromSentimentAnalysis) {
+    public FeedbackEntity(LocalDateTime feedbackDate, FeedbackStatusEnum feedbackStatus, String content, SentimentStateEnum sentiment, FeedbackMethodEnum method, Long validationTokenId, LocalDateTime sentToSentimentAnalysis, LocalDateTime receivedFromSentimentAnalysis) {
         this.feedbackDate = feedbackDate;
         this.feedbackStatus = feedbackStatus;
         this.content = content;
         this.sentiment = sentiment;
-        this.feedbackSourceId = feedbackSourceId;
+        this.feedbackSource = null;
         this.method = method;
         this.validationTokenId = validationTokenId;
         this.sentToSentimentAnalysis = sentToSentimentAnalysis;

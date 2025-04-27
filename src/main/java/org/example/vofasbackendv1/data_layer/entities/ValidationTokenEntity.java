@@ -1,16 +1,20 @@
 package org.example.vofasbackendv1.data_layer.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "validation_token_table")
 @Data
 @ToString
+@EqualsAndHashCode
 public class ValidationTokenEntity {
 
     @Id
@@ -19,28 +23,36 @@ public class ValidationTokenEntity {
     private Long validationTokenId;
 
     @Size(max = 255)
-    @Column(name = "token", length = 255)
-    private String token;
+    @Column(name = "validation_token")
+    private UUID token;
 
-    @Column(name = "producer_kiosk_id")
-    private Long producerKioskId;
+    @ManyToOne
+    @NotNull
+    @JoinColumn(name = "producer_kiosk_id", referencedColumnName = "feedback_source_id")
+    private KioskEntity producerKiosk;
 
     @Column(name = "creation_date")
-    private LocalDateTime creationDate;
+    private LocalDateTime createdAt;
 
     @Size(max = 32)
     @Column(name = "status", length = 32)
     private String status;
 
     @Column(name = "using_date")
-    private LocalDateTime usingDate;
+    private LocalDateTime usedAt;
 
-    public ValidationTokenEntity() {}
+    public ValidationTokenEntity() {
+        this.token = null;
+        this.producerKiosk = null;
+        this.createdAt = null;  // Default to the current time
+        this.status = "";
+        this.usedAt = null;
+    }
 
-    public ValidationTokenEntity(String token, Long producerKioskId, LocalDateTime creationDate, String status) {
+    public ValidationTokenEntity(UUID token, KioskEntity producerKiosk, LocalDateTime createdAt, String status) {
         this.token = token;
-        this.producerKioskId = producerKioskId;
-        this.creationDate = creationDate;
+        this.producerKiosk = producerKiosk;
+        this.createdAt = createdAt;
         this.status = status;
     }
 }
