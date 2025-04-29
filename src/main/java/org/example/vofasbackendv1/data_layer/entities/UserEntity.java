@@ -1,6 +1,7 @@
 package org.example.vofasbackendv1.data_layer.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -33,6 +34,7 @@ public class UserEntity {
     @Column(name = "email", nullable = false, unique = true, length = 64)
     @Size(min = 8, max = 64)
     @NotBlank
+    @Email
     private String email;
 
     @Column(name = "password", nullable = false, length = 32)
