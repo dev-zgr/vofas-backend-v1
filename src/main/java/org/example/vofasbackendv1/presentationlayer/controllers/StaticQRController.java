@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
+import org.example.vofasbackendv1.presentationlayer.dto.ResponseDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.StaticQRDTO;
 import org.example.vofasbackendv1.servicelayer.interfaces.StaticQRService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,7 +133,7 @@ public class StaticQRController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
     @PutMapping(path = "/static-qr/{feedbackSourceID}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<StaticQRDTO>> updateStaticQRByFeedbackSourceID(
+    public ResponseEntity<BaseDTO<ResponseDTO>> updateStaticQRByFeedbackSourceID(
             @PathVariable("feedbackSourceID") Long feedbackSourceID,
             @RequestBody @Valid StaticQRDTO staticQRDTO) {
         // TODO: Validate 'feedbackSourceID'. It must not be null or less than 1.
