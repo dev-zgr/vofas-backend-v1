@@ -6,7 +6,7 @@ import org.example.vofasbackendv1.exceptions.InvalidParametersException;
 import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
 
 public class UserMapper {
-    public static UserDTO EntitytoUserDTO(UserEntity userEntity) {
+    public static UserDTO EntitytoDTO(UserEntity userEntity) {
         if (userEntity == null) {
             return null;
         }
@@ -28,7 +28,7 @@ public class UserMapper {
         return userDTO;
     }
 
-    public static UserEntity UserDTOtoEntity(UserDTO userDTO) {
+    public static UserEntity DTOtoEntity(UserDTO userDTO) {
         if (userDTO == null) {
             return null;
         }
