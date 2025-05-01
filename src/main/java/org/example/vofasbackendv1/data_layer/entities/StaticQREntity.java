@@ -15,7 +15,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "static_qr_table")
-@PrimaryKeyJoinColumn(name = "feedback_source_id")  // Joins on the primary key from FeedbackSourceEntity
+@PrimaryKeyJoinColumn(name = "feedback_source_id")
 @Data
 @ToString
 public class StaticQREntity extends FeedbackSourceEntity{
@@ -39,7 +39,7 @@ public class StaticQREntity extends FeedbackSourceEntity{
     // Default constructor initializing default values
     public StaticQREntity() {
         super();
-        this.qrID = null; // qrID will be set via argument in the other constructor
+        this.qrID = null;
         this.location = "";
         this.informativeText = "";
     }

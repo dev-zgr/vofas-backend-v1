@@ -12,9 +12,10 @@ public class StaticQRConstants {
     // Error messages
     public static final String STATICQR_NOT_FOUND = "Static QR not found with the provided ID.";
     public static final String INVALID_STATICQR_ID = "Invalid Static QR ID provided.";
-    public static final String INVALID_SORT_PARAMETER = "Invalid sortBy parameter. Allowed values: qrID, location, sourceName and feedbackSourceID.";
+    public static final String INVALID_SORT_PARAMETER = "Invalid sortBy parameter. Allowed values: qrID, location, sourceName and createdAt.";
     public static final String INVALID_PAGINATION_PARAMETER = "Invalid page number or pagination parameter.";
     public static final String INVALID_ASCENDING_PARAMETER = "Invalid ascending parameter. It must be true or false.";
+    public static final String INVALID_STATE_PARAMETER = "Invalid state parameter. Allowed values: ACTIVE and PASSIVE.";
 
     // Status codes
     public static final int HTTP_OK = 200;

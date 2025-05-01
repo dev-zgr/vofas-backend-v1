@@ -11,6 +11,7 @@ import org.example.vofasbackendv1.data_layer.enums.SourceTypeEnum;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "feedback_source_table")
@@ -31,7 +32,6 @@ public class FeedbackSourceEntity {
     private String sourceName;
 
     @NotNull
-    @Size(min = 2, max = 64)
     @Column(name = "source_type", nullable = false, length = 64)
     @Enumerated(EnumType.STRING)
     private SourceTypeEnum sourceType;
@@ -42,17 +42,16 @@ public class FeedbackSourceEntity {
     private String description;
 
     @Column(name = "created_at")
-    @NotBlank
+    @NotNull
     private LocalDateTime createdAt;
 
     @NotNull
-    @Size(min = 2, max = 16)
     @Column(name = "state", nullable = false, length = 16)
     @Enumerated(EnumType.STRING)
     private FeedbackSourceStateEnum state;
 
     @OneToMany(mappedBy = "feedbackSource", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private ArrayList<FeedbackEntity> feedbacks = new ArrayList<>();
+    private List<FeedbackEntity> feedbacks;
 
     public FeedbackSourceEntity() {
         this.sourceName = "";

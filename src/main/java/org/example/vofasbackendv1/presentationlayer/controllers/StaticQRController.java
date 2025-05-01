@@ -5,15 +5,26 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
+import org.example.vofasbackendv1.constants.StaticQRConstants;
+import org.example.vofasbackendv1.data_layer.enums.FeedbackSourceStateEnum;
+import org.example.vofasbackendv1.data_layer.enums.SourceTypeEnum;
+import org.example.vofasbackendv1.exceptions.InvalidParametersException;
+import org.example.vofasbackendv1.exceptions.NoContentException;
+import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
 import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.ResponseDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.StaticQRDTO;
 import org.example.vofasbackendv1.servicelayer.interfaces.StaticQRService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.InvalidParameterException;
+import java.time.LocalDateTime;
 
 @Tag(name = "Static QR API endpoints", description = "Static QR API endpoints")
 @RestController
@@ -29,8 +40,8 @@ public class StaticQRController {
     }
 
     @Operation(
-        summary = "Fetch All Static QRs by Status",
-        description = "Fetches all Static QRs based on their status (active or passive), with sorting and pagination."
+        summary = "Fetch All Static QRs by states",
+        description = "Fetches all Static QRs based on their state (active or passive), with sorting and pagination."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
@@ -40,29 +51,29 @@ public class StaticQRController {
         @ApiResponse(responseCode = "403", description = "HTTP Status Forbidden"),
         @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
-    @GetMapping(path = "/static-qr/{status}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/static-qr/state/{state}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<Page<StaticQRDTO>>> getAllStaticQRs(
-            @PathVariable("status") String status,
+            @PathVariable("state") FeedbackSourceStateEnum state,
             @RequestParam(value = "sort-by", defaultValue = "qrID") String sortBy,
             @RequestParam(value = "ascending", defaultValue = "true") boolean ascending,
-            @RequestParam(value = "page-no", defaultValue = "0") int pageNo) {
-        // TODO: Validate 'status'. Allowed values are 'active', 'passive'.
-        //       If invalid, throw BadRequestException with a clear message.
+            @RequestParam(value = "page-no", defaultValue = "0") int pageNo) throws BadRequestException {
 
-        // TODO: Validate 'sortBy' parameter. Allowed values: 'qrID', 'sourceName', 'createAt' and  'location'.
-        //       If invalid, throw BadRequestException with a descriptive message.
+        try {
+            Page<StaticQRDTO> resultPage = staticQRService.getAllStaticQRs(state, sortBy, ascending, pageNo);
 
-        // TODO: Validate 'ascending'. It should be true or false.
-        //       If invalid, throw BadRequestException with a descriptive message.
+            BaseDTO<Page<StaticQRDTO>> response = new BaseDTO<>();
+            response.setSourceName("SYSTEM");
+            response.setMessage(StaticQRConstants.STATICQRS_FETCH_SUCCESS);
+            response.setRequestedAt(LocalDateTime.now());
+            response.setContent(resultPage);
 
-        // TODO: Implement pagination. Use 'pageNo' and return a page of StaticQRs per page. Each page should contain 10 StaticQRs.
-        //       If the 'pageNo' exceeds available pages, return an empty list with 204 status code.
+            return ResponseEntity.ok(response);
 
-        // TODO: Fetch StaticQRs based on 'status' (active/passive), 'sortBy', and 'ascending' from the database.
-
-        // TODO: Map StaticQR entities to StaticQRDTOs and wrap in BaseDTO.
-
-        return null; // Return the list wrapped in BaseDTO with HTTP 200 OK.
+        } catch (InvalidParametersException e) {
+            throw new BadRequestException(e.getMessage());
+        } catch (NoContentException e) {
+            return ResponseEntity.noContent().build();
+        }
     }
 
     @Operation(
@@ -80,16 +91,38 @@ public class StaticQRController {
     })
     @GetMapping(path = "/static-qr/{feedbackSourceID}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<StaticQRDTO>> getStaticQRByFeedbackSourceID(@PathVariable("feedbackSourceID") Long feedbackSourceID) {
-        // TODO: Validate 'feedbackSourceID'. It must not be null or less than 1.
-        //       If invalid, throw BadRequestException with a descriptive message.
+        try {
+            StaticQRDTO staticQRDTO = staticQRService.getStaticQRByFeedbackSourceID(feedbackSourceID);
 
-        // TODO: Fetch StaticQR entity by 'feedbackSourceID' from the database.
-        //       If not found, throw ResourceNotFoundException or return 404.
+            BaseDTO<StaticQRDTO> response = new BaseDTO<>();
+            response.setContent(staticQRDTO);
+            response.setMessage(StaticQRConstants.STATICQR_FETCH_SUCCESS);
+            response.setRequestedAt(LocalDateTime.now());
+            response.setSourceName("SYSTEM");
 
-        // TODO: Map the retrieved StaticQREntity to StaticQRDTO.
+            return ResponseEntity.ok(response);
+        } catch (InvalidParametersException e) {
+            BaseDTO<StaticQRDTO> errorResponse = new BaseDTO<>();
+            errorResponse.setMessage(StaticQRConstants.INVALID_STATICQR_ID);
+            errorResponse.setRequestedAt(LocalDateTime.now());
+            errorResponse.setSourceName("SYSTEM");
 
-        // TODO: Wrap the StaticQRDTO in BaseDTO and return with HTTP 200 OK.
-        return null;
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (ResourceNotFoundException e) {
+            BaseDTO<StaticQRDTO> errorResponse = new BaseDTO<>();
+            errorResponse.setMessage(StaticQRConstants.STATICQR_NOT_FOUND);
+            errorResponse.setRequestedAt(LocalDateTime.now());
+            errorResponse.setSourceName("SYSTEM");
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (Exception e) {
+            BaseDTO<StaticQRDTO> errorResponse = new BaseDTO<>();
+            errorResponse.setMessage("Internal Server Error");
+            errorResponse.setRequestedAt(LocalDateTime.now());
+            errorResponse.setSourceName("SYSTEM");
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
     @Operation(
@@ -105,18 +138,21 @@ public class StaticQRController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
     @PostMapping(path = "/static-qr", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<StaticQRDTO>> createStaticQR(@RequestBody @Valid StaticQRDTO staticQRDTO) {
-        // TODO: Validate StaticQRDTO fields using annotations or custom logic if necessary.
-        //       If any validation fails, throw BadRequestException with a descriptive message.
+    public ResponseEntity<BaseDTO<StaticQRDTO>> createStaticQR(@RequestBody @Valid StaticQRDTO staticQRDTO) throws BadRequestException {
+        try {
+            StaticQRDTO savedQR = staticQRService.createStaticQR(staticQRDTO);
 
-        // TODO: Map StaticQRDTO to StaticQREntity.
+            BaseDTO<StaticQRDTO> response = new BaseDTO<>();
+            response.setSourceName("SYSTEM");
+            response.setMessage(StaticQRConstants.STATICQR_CREATED_SUCCESS);
+            response.setRequestedAt(LocalDateTime.now());
+            response.setContent(savedQR);
 
-        // TODO: Save the StaticQREntity to the database.
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
-        // TODO: Convert the saved StaticQREntity back to StaticQRDTO.
-
-        // TODO: Wrap the StaticQRDTO in BaseDTO and return it with HTTP 201 Created.
-        return null;
+        } catch (InvalidParameterException e) {
+            throw new BadRequestException(e.getMessage());
+        }
     }
 
     @Operation(
@@ -133,26 +169,51 @@ public class StaticQRController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
     @PutMapping(path = "/static-qr/{feedbackSourceID}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<ResponseDTO>> updateStaticQRByFeedbackSourceID(
+    public ResponseEntity<BaseDTO<StaticQRDTO>> updateStaticQRByFeedbackSourceID(
             @PathVariable("feedbackSourceID") Long feedbackSourceID,
             @RequestBody @Valid StaticQRDTO staticQRDTO) {
-        // TODO: Validate 'feedbackSourceID'. It must not be null or less than 1.
-        //       If invalid, throw BadRequestException with a descriptive message.
 
-        // TODO: Fetch StaticQR entity by 'feedbackSourceID'.
-        //       If not found, throw ResourceNotFoundException (or return 404).
+        try {
+            Boolean updateSuccess = staticQRService.updateStaticQRByFeedbackSourceID(feedbackSourceID, staticQRDTO);
 
-        // TODO: Ensure that only 'sourceName', 'description', 'state', and 'informativeText' are updated.
-        //       If other fields are changed, throw BadRequestException with a descriptive message.
+            if (updateSuccess) {
+                StaticQRDTO updatedStaticQRDTO = staticQRService.getStaticQRByFeedbackSourceID(feedbackSourceID);
 
-        // TODO: Update the allowed fields (sourceName, description, state, informativeText) in the StaticQR entity.
+                BaseDTO<StaticQRDTO> baseDTO = new BaseDTO<>(
+                        "SYSTEM",
+                        StaticQRConstants.STATICQR_UPDATED_SUCCESS,
+                        LocalDateTime.now(),
+                        updatedStaticQRDTO
+                );
 
-        // TODO: Save the updated StaticQR entity to the database.
-
-        // TODO: Convert the updated StaticQR entity back to StaticQRDTO.
-
-        // TODO: Wrap the updated StaticQRDTO in BaseDTO and return it with HTTP 200 OK.
-        return null;
+                return ResponseEntity.ok(baseDTO);
+            } else {
+                throw new InvalidParametersException("Failed to update StaticQR.");
+            }
+        } catch (InvalidParametersException e) {
+            BaseDTO<StaticQRDTO> errorResponse = new BaseDTO<>(
+                    "SYSTEM",
+                    e.getMessage(),
+                    LocalDateTime.now(),
+                    null
+            );
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (ResourceNotFoundException e) {
+            BaseDTO<StaticQRDTO> errorResponse = new BaseDTO<>(
+                    "SYSTEM",
+                    e.getMessage(),
+                    LocalDateTime.now(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (Exception e) {
+            BaseDTO<StaticQRDTO> errorResponse = new BaseDTO<>(
+                    "SYSTEM",
+                    "An error occurred while updating StaticQR.",
+                    LocalDateTime.now(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
-
 }
