@@ -19,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,7 +58,7 @@ public class UserServiceImpl implements UserService {
             throw new NoContentException("User", String.valueOf(pageNo));
         }
 
-        return userPage.map(UserMapper::EntitytoUserDTO);
+        return userPage.map(UserMapper::entityToDTO);
     }
 
     @Override
@@ -72,14 +71,14 @@ public class UserServiceImpl implements UserService {
             throw new ResourceNotFoundException("User", "userID", String.valueOf(userID));
         }
 
-        return UserMapper.EntitytoUserDTO(optionalEntity.get());
+        return UserMapper.entityToDTO(optionalEntity.get());
     }
 
     @Override
     public Boolean createUser(UserDTO userDTO) throws InvalidParametersException {
         validateUserDTO(userDTO);
 
-        UserEntity userEntity = UserMapper.UserDTOtoEntity(userDTO);
+        UserEntity userEntity = UserMapper.dtoToEntity(userDTO);
 
         try {
             userRepository.save(userEntity);
@@ -134,7 +133,7 @@ public class UserServiceImpl implements UserService {
 
         UserEntity updatedUser = userRepository.save(existingUser);
 
-        return UserMapper.EntitytoUserDTO(updatedUser);
+        return UserMapper.entityToDTO(updatedUser);
     }
 
     private void validateUserID(Long userID) throws InvalidParametersException {
