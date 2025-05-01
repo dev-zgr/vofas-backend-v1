@@ -6,15 +6,23 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
+import org.example.vofasbackendv1.constants.UserConstants;
+import org.example.vofasbackendv1.exceptions.InvalidParametersException;
+import org.example.vofasbackendv1.exceptions.NoContentException;
+import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
 import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.ResponseDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
 import org.example.vofasbackendv1.servicelayer.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @Tag(name = "User API endpoints", description = "User API endpoints")
 @RestController
@@ -38,19 +46,28 @@ public class UserController {
             @ApiResponse(responseCode = "403", description = "HTTP  Status Forbidden "),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")})
     @GetMapping(path = "/user", produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<BaseDTO<Page<UserDTO>>> getAllUsers(@RequestParam(value = "sort-by", defaultValue = "userID") String sortBy, @RequestParam(value = "ascending", defaultValue = "true") boolean ascending, @RequestParam(value = "page-no", defaultValue = "0") int pageNo) {
-        return null;
-        // TODO: Validate 'sortBy' parameter. Allowed values are 'userID', 'firstName', 'lastName', 'email'.
-        //  If the value is invalid, throw a BadRequestException with a clear message.
+    public ResponseEntity<BaseDTO<Page<UserDTO>>> getAllUsers(
+            @RequestParam(value = "sort-by", defaultValue = "userID") String sortBy,
+            @RequestParam(value = "ascending", defaultValue = "true") boolean ascending,
+            @RequestParam(value = "page-no", defaultValue = "0") int pageNo) throws BadRequestException {
 
-        // TODO: Validate 'ascending' parameter. It should be either 'true' or 'false'.
-        //       If the value is invalid, throw a BadRequestException with a clear message.
+        try {
+            Page<UserDTO> userPage = userService.getAllUser(sortBy, ascending, pageNo);
 
-        // TODO: Implement pagination. Use 'pageNo' and return a page of 10 users per page.
-        //       If the 'pageNo' exceeds available pages, return an empty list with a 204 status code (No Content).
+            BaseDTO<Page<UserDTO>> response = new BaseDTO<>(
+                    "USER",
+                    UserConstants.USERS_FETCH_SUCCESS,
+                    LocalDateTime.now(),
+                    userPage
+            );
 
-        // TODO: Sort the user list based on the 'sortBy' and 'ascending' parameters.
-        //       Ensure the sorting is applied on the correct field and order.
+            return ResponseEntity.ok(response);
+
+        } catch (InvalidParametersException e) {
+            throw new BadRequestException("Invalid parameters: " + e.getMessage());
+        } catch (NoContentException e) {
+            return ResponseEntity.noContent().build();
+        }
     }
 
     @Operation(summary = "Fetch User by User ID", description = "Fetches a single user's details using their user ID from the VoFAS application. " + "Primarily used for profile display or admin-level queries.")
@@ -63,16 +80,43 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")})
     @GetMapping(path = "/user/{userID}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<UserDTO>> getUserByUserID(@PathVariable("userID") Long userID) {
-        // TODO: Validate 'userID'. It must not be null or less than 1.
-        //       If invalid, throw BadRequestException with a descriptive message.
+        try {
+            UserDTO userDTO = userService.getUserByUserID(userID);
 
-        // TODO: Fetch user from the database by 'userID'.
-        //       If user is not found, throw ResourceNotFoundException (or return 404 status).
+            BaseDTO<UserDTO> responseDTO = new BaseDTO<>(
+                    "USER",
+                    UserConstants.USER_FETCH_SUCCESS,
+                    LocalDateTime.now(),
+                    userDTO
+            );
 
-        // TODO: Map the retrieved UserEntity to UserDTO.
+            return ResponseEntity.ok(responseDTO);
 
-        // TODO: Wrap the UserDTO in BaseDTO and return with HTTP 200 OK.
-        return null;
+        } catch (InvalidParametersException e) {
+            BaseDTO<UserDTO> errorResponse = new BaseDTO<>(
+                    "USER",
+                    e.getMessage(),
+                    LocalDateTime.now(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (ResourceNotFoundException e) {
+            BaseDTO<UserDTO> errorResponse = new BaseDTO<>(
+                    "USER",
+                    e.getMessage(),
+                    LocalDateTime.now(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (Exception e) {
+            BaseDTO<UserDTO> errorResponse = new BaseDTO<>(
+                    "USER",
+                    "An unexpected error occurred",
+                    LocalDateTime.now(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
     @Operation(summary = "Create a New User", description = "Creates a new user in the VoFAS application using the provided UserDTO. " + "This endpoint is used for user registration or admin-level user creation.")
@@ -84,16 +128,23 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")})
     @PostMapping(path = "/user", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDTO> createUser(@RequestBody @Valid UserDTO userDTO) {
-        // TODO: Validate the fields of UserDTO using annotations and custom logic if necessary.
+        try {
+            Boolean userCreated = userService.createUser(userDTO);
 
-        // TODO: Convert UserDTO to UserEntity.
-
-        // TODO: Save the UserEntity to the database.
-
-        // TODO: Convert the saved UserEntity back to UserDTO.
-
-        // TODO: Wrap the UserDTO in a BaseDTO and return it with HTTP 201 Created.
-        return null;
+            if (userCreated) {
+                ResponseDTO responseDTO = new ResponseDTO(
+                        "201",
+                        UserConstants.USER_CREATED_SUCCESS
+                );
+                return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(new ResponseDTO("400", "Failed to create user."), HttpStatus.BAD_REQUEST);
+            }
+        } catch (InvalidParametersException e) {
+            return new ResponseEntity<>(new ResponseDTO("400", e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ResponseDTO("500", "Unexpected error: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Operation(
@@ -110,17 +161,39 @@ public class UserController {
     })
     @DeleteMapping(path = "/user/{userID}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDTO> deleteUserByUserID(@PathVariable("userID") Long userID) {
-        // TODO: Validate 'userID'. It must not be null or less than 1.
-        //       If invalid, throw BadRequestException with a descriptive message.
+        try {
+            Boolean isDeleted = userService.deleteUserByUserID(userID);
 
-        // TODO: Check if user exists in the database by 'userID'.
-        //       If not found, throw ResourceNotFoundException (or return 404).
+            ResponseDTO responseDTO = new ResponseDTO(
+                    "200",
+                    UserConstants.USER_DELETED_SUCCESS
+            );
 
-        // TODO: Delete the user from the database.
+            return ResponseEntity.ok(responseDTO);
 
-        // TODO: Return a ResponseDTO indicating successful deletion with HTTP 200 OK.
-        return null;
+        } catch (InvalidParametersException e) {
+            ResponseDTO errorResponse = new ResponseDTO(
+                    "400",
+                    e.getMessage()
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+
+        } catch (ResourceNotFoundException e) {
+            ResponseDTO errorResponse = new ResponseDTO(
+                    "404",
+                    e.getMessage()
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+
+        } catch (Exception e) {
+            ResponseDTO errorResponse = new ResponseDTO(
+                    "500",
+                    "An unexpected error occurred"
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
+
 
     @Operation(
         summary = "Update User by User ID",
@@ -137,20 +210,42 @@ public class UserController {
     })
     @PutMapping(path = "/user/{userID}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<UserDTO>> updateUserByUserID(@PathVariable("userID") Long userID, @RequestBody @Valid UserDTO userDTO) {
-        // TODO: Validate 'userID'. It must not be null or less than 1.
-        //       If invalid, throw BadRequestException with a descriptive message.
+        try {
+            UserDTO updatedUserDTO = userService.updateUserByUserID(userID, userDTO);
 
-        // TODO: Check if user exists in the database by 'userID'.
-        //       If not found, throw ResourceNotFoundException (or return 404).
+            BaseDTO<UserDTO> baseDTO = new BaseDTO<>(
+                    "USER",
+                    UserConstants.USER_UPDATED_SUCCESS,
+                    LocalDateTime.now(),
+                    updatedUserDTO
+            );
 
-        // TODO: Update the user entity fields with data from UserDTO.
-
-        // TODO: Save the updated UserEntity to the database.
-
-        // TODO: Convert the updated UserEntity back to UserDTO.
-
-        // TODO: Wrap the updated UserDTO in a BaseDTO and return it with HTTP 200 OK.
-        return null;
+                return ResponseEntity.ok(baseDTO);
+        } catch (InvalidParametersException e) {
+            BaseDTO<UserDTO> errorResponse = new BaseDTO<>(
+                    "USER",
+                    e.getMessage(),
+                    LocalDateTime.now(),
+                    null
+            );
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (ResourceNotFoundException e) {
+            BaseDTO<UserDTO> errorResponse = new BaseDTO<>(
+                    "USER",
+                    e.getMessage(),
+                    LocalDateTime.now(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (Exception e) {
+            BaseDTO<UserDTO> errorResponse = new BaseDTO<>(
+                    "USER",
+                    "An error occurred while updating User.",
+                    LocalDateTime.now(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
     //TODO: Add update account by jwt token

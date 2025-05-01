@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.security.InvalidParameterException;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,6 +39,16 @@ public class StaticQRServiceImpl implements StaticQRService {
     public Page<StaticQRDTO> getAllStaticQRs(FeedbackSourceStateEnum  state, String sortBy, boolean ascending, int pageNo) throws NoContentException, InvalidParametersException {
         if (!state.equals(FeedbackSourceStateEnum.ACTIVE) && !state.equals(FeedbackSourceStateEnum.PASSIVE)) {
             throw new InvalidParametersException(StaticQRConstants.INVALID_STATE_PARAMETER);
+        }
+        List<String> sortByList = List.of("qrID", "location", "createdAt", "sourceName");
+        if (!sortByList.contains(sortBy)) {
+            throw new InvalidParametersException(StaticQRConstants.INVALID_SORT_PARAMETER);
+        }
+        if (!"true".equalsIgnoreCase(String.valueOf(ascending)) && !"false".equalsIgnoreCase(String.valueOf(ascending))) {
+            throw new InvalidParametersException(StaticQRConstants.INVALID_ASCENDING_PARAMETER);
+        }
+        if (pageNo < 0) {
+            throw new InvalidParametersException(StaticQRConstants.INVALID_PAGINATION_PARAMETER);
         }
 
         Sort sort = Sort.by(ascending ? Sort.Order.asc(sortBy) : Sort.Order.desc(sortBy));
