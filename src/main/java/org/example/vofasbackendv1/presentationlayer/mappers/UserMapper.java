@@ -1,17 +1,16 @@
 package org.example.vofasbackendv1.presentationlayer.mappers;
 
+import org.apache.catalina.User;
 import org.example.vofasbackendv1.data_layer.entities.UserEntity;
 import org.example.vofasbackendv1.data_layer.enums.RoleEnum;
 import org.example.vofasbackendv1.exceptions.InvalidParametersException;
 import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
 
 public class UserMapper {
-    public static UserDTO entityToDTO(UserEntity userEntity) {
+    public static UserDTO entityToDTO(UserEntity userEntity, UserDTO userDTO) {
         if (userEntity == null) {
             return null;
         }
-
-        UserDTO userDTO = new UserDTO();
         userDTO.setUserID(userEntity.getUserID());
         userDTO.setFirstName(userEntity.getFirstName());
         userDTO.setLastName(userEntity.getLastName());
@@ -28,30 +27,22 @@ public class UserMapper {
         return userDTO;
     }
 
-    public static UserEntity dtoToEntity(UserDTO userDTO) {
+    public static UserEntity dtoToEntity(UserDTO userDTO, UserEntity userEntity) {
         if (userDTO == null) {
             return null;
         }
-
-        RoleEnum roleEnum;
-        try {
-            roleEnum = RoleEnum.valueOf(userDTO.getRoleEnum().toUpperCase());
-        } catch (Exception e) {
-            throw new InvalidParametersException("Invalid role: " + userDTO.getRoleEnum());
-        }
-
-        return new UserEntity(
-                userDTO.getFirstName().trim(),
-                userDTO.getLastName().trim(),
-                userDTO.getEmail().trim(),
-                userDTO.getPassword().trim(),
-                userDTO.getAddressFirstLine().trim(),
-                userDTO.getAddressLine2().trim(),
-                userDTO.getDistrict().trim(),
-                userDTO.getCity().trim(),
-                userDTO.getPostalCode().trim(),
-                userDTO.getCountry().trim(),
-                roleEnum
-        );
+        RoleEnum roleEnum = RoleEnum.valueOf(userDTO.getRoleEnum());
+        userEntity.setFirstName(userDTO.getFirstName().trim());
+        userEntity.setLastName(userDTO.getLastName().trim());
+        userEntity.setEmail(userDTO.getEmail().trim());
+        userEntity.setPassword(userDTO.getPassword().trim());
+        userEntity.setAddressFirstLine(userDTO.getAddressFirstLine().trim());
+        userEntity.setAddressLine2(userDTO.getAddressLine2().trim());
+        userEntity.setDistrict(userDTO.getDistrict().trim());
+        userEntity.setCity(userDTO.getCity().trim());
+        userEntity.setPostalCode(userDTO.getPostalCode().trim());
+        userEntity.setCountry(userDTO.getCountry().trim());
+        userEntity.setRoleEnum(roleEnum);
+        return userEntity;
     }
 }

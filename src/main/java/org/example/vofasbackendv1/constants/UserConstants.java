@@ -8,6 +8,10 @@ public class UserConstants {
     public static final String USER_CREATED_SUCCESS = "User created successfully.";
     public static final String USER_UPDATED_SUCCESS = "User updated successfully.";
     public static final String USER_DELETED_SUCCESS = "User deleted successfully.";
+    public static final String USER_ALREADY_EXIST = "User already exists with the provided email.";
+    public static final String ADMIN_ALREADY_EXIST = "Admin already exists within the system. at most one admin is allowed.";
+    public static final String USER_ROLE_CANNOT_BE_CHANGED = "User role cannot be changed. Only the admin can change the user role.";
+
 
     // Error messages
     public static final String USER_NOT_FOUND = "User not found with the provided ID.";
@@ -17,12 +21,12 @@ public class UserConstants {
     public static final String INVALID_ASCENDING_PARAMETER = "Invalid ascending parameter. It must be true or false.";
 
     // Status codes
-    public static final int HTTP_OK = 200;
-    public static final int HTTP_CREATED = 201;
-    public static final int HTTP_NO_CONTENT = 204;
-    public static final int HTTP_BAD_REQUEST = 400;
-    public static final int HTTP_UNAUTHORIZED = 401;
-    public static final int HTTP_FORBIDDEN = 403;
-    public static final int HTTP_NOT_FOUND = 404;
-    public static final int HTTP_INTERNAL_SERVER_ERROR = 500;
+    public static final String HTTP_OK = "200";
+    public static final String HTTP_CREATED = "201";
+    public static final String HTTP_NO_CONTENT = "204";
+    public static final String HTTP_BAD_REQUEST = "400";
+    public static final String HTTP_UNAUTHORIZED = "401";
+    public static final String HTTP_FORBIDDEN = "403";
+    public static final String HTTP_NOT_FOUND = "404";
+    public static final String HTTP_INTERNAL_SERVER_ERROR = "500";
 }

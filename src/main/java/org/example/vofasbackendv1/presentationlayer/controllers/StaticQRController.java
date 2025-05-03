@@ -62,12 +62,12 @@ public class StaticQRController {
             Page<StaticQRDTO> resultPage = staticQRService.getAllStaticQRs(state, sortBy, ascending, pageNo);
 
             BaseDTO<Page<StaticQRDTO>> response = new BaseDTO<>();
-            response.setSourceName("SYSTEM");
+            response.setSourceName(SourceConstants.STATIC_QR);
             response.setMessage(StaticQRConstants.STATICQRS_FETCH_SUCCESS);
             response.setRequestedAt(LocalDateTime.now());
             response.setContent(resultPage);
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
 
         } catch (InvalidParametersException e) {
             throw new BadRequestException(e.getMessage());
