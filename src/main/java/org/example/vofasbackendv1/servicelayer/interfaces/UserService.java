@@ -6,8 +6,6 @@ import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
 import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
 import org.springframework.data.domain.Page;
 
-import java.security.InvalidParameterException;
-
 public interface UserService {
 
     Page<UserDTO> getAllUser(String sortBy, boolean ascending, int pageNo) throws NoContentException;
@@ -19,4 +17,5 @@ public interface UserService {
     Boolean deleteUserByUserID(Long userID) throws  ResourceNotFoundException;
 
     UserDTO updateUserByUserID(Long userID, UserDTO userDTO) throws InvalidSourceException, ResourceNotFoundException;
-}
+
+    }

@@ -11,9 +11,7 @@ import jakarta.validation.constraints.Pattern;
 import org.apache.coyote.BadRequestException;
 import org.example.vofasbackendv1.constants.SourceConstants;
 import org.example.vofasbackendv1.constants.UserConstants;
-import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
-import org.example.vofasbackendv1.presentationlayer.dto.ResponseDTO;
-import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
+import org.example.vofasbackendv1.presentationlayer.dto.*;
 import org.example.vofasbackendv1.servicelayer.interfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.xml.transform.Source;
 import java.time.LocalDateTime;
 
 @Tag(name = "User API endpoints", description = "User API endpoints")
@@ -43,7 +42,6 @@ public class UserController {
             @ApiResponse(responseCode = "204", description = "HTTP Status No Content"),
             @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request "),
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized "),
-            @ApiResponse(responseCode = "403", description = "HTTP  Status Forbidden "),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")})
     @GetMapping(path = "/user", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<BaseDTO<Page<UserDTO>>> getAllUsers(
@@ -65,7 +63,6 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
             @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request"),
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "HTTP Status Forbidden"),
             @ApiResponse(responseCode = "404", description = "HTTP Status Not Found"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")})
     @GetMapping(path = "/user/{userID}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -85,7 +82,6 @@ public class UserController {
             @ApiResponse(responseCode = "201", description = "HTTP Status Created"),
             @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request"),
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "HTTP Status Forbidden"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")})
     @PostMapping(path = "/user", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDTO> createUser(@RequestBody @Valid UserDTO userDTO) {
@@ -105,7 +101,6 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
             @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request"),
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "HTTP Status Forbidden"),
             @ApiResponse(responseCode = "404", description = "HTTP Status Not Found"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
@@ -129,7 +124,6 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
             @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request"),
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "HTTP Status Forbidden"),
             @ApiResponse(responseCode = "404", description = "HTTP Status Not Found"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
@@ -137,16 +131,12 @@ public class UserController {
     public ResponseEntity<BaseDTO<UserDTO>> updateUserByUserID(@PathVariable("userID") @Min(0) Long userID, @RequestBody @Valid UserDTO userDTO) {
         UserDTO updatedUserDTO = userService.updateUserByUserID(userID, userDTO);
         BaseDTO<UserDTO> baseDTO = new BaseDTO<>(
-                "USER",
+                SourceConstants.User,
                 UserConstants.USER_UPDATED_SUCCESS,
                 LocalDateTime.now(),
                 updatedUserDTO
         );
         return ResponseEntity.ok(baseDTO);
     }
-
-
-        //TODO: Add update account by jwt token
-
 
     }

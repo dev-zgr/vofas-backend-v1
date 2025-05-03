@@ -1,6 +1,6 @@
 package org.example.vofasbackendv1.servicelayer.implementations;
 
-import jakarta.validation.Validator;
+import org.example.vofasbackendv1.components.JwtTokenProvider;
 import org.example.vofasbackendv1.constants.SourceConstants;
 import org.example.vofasbackendv1.constants.UserConstants;
 import org.example.vofasbackendv1.data_layer.entities.UserEntity;
@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,15 +29,18 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private UserRepository userRepository;
-    private Validator validator;
+
+    private final AuthenticationManager authManager;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Value("${vofas.page.size}")
     private int pageSize;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, Validator validator) {
+    public UserServiceImpl(UserRepository userRepository, AuthenticationManager authManager, JwtTokenProvider jwtTokenProvider) {
         this.userRepository = userRepository;
-        this.validator = validator;
+        this.authManager = authManager;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
 
@@ -98,9 +102,14 @@ public class UserServiceImpl implements UserService {
         if(!userDTO.getRoleEnum().equals(optionalUser.get().getRoleEnum().toString())){
             throw new InvalidSourceException(SourceConstants.User, UserConstants.USER_ROLE_CANNOT_BE_CHANGED);
         }
+        if (userRepository.findUserEntitiesByEmail(userDTO.getEmail()).isPresent()) {
+            throw new InvalidSourceException(SourceConstants.User, UserConstants.USER_ALREADY_EXIST);
+        }
         UserEntity existingUser = UserMapper.dtoToEntity(userDTO,optionalUser.get());
         UserEntity updatedUser = userRepository.save(existingUser);
         return UserMapper.entityToDTO(updatedUser, new UserDTO());
     }
+
+
 
 }

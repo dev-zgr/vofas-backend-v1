@@ -13,6 +13,7 @@ public class UserConstants {
     public static final String USER_ROLE_CANNOT_BE_CHANGED = "User role cannot be changed. Only the admin can change the user role.";
 
 
+
     // Error messages
     public static final String USER_NOT_FOUND = "User not found with the provided ID.";
     public static final String INVALID_USER_ID = "Invalid user ID provided.";

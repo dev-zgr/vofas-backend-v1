@@ -1,5 +1,7 @@
 package org.example.vofasbackendv1.presentationlayer.exceptionhandler;
 
+import org.example.vofasbackendv1.constants.AuthenticationConstants;
+import org.example.vofasbackendv1.constants.UserConstants;
 import org.example.vofasbackendv1.exceptions.InvalidSourceException;
 import org.example.vofasbackendv1.exceptions.NoContentException;
 import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
@@ -7,6 +9,7 @@ import org.example.vofasbackendv1.presentationlayer.dto.ErrorResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -79,6 +82,18 @@ public class GlobalExceptionHandler {
                 webRequest.getDescription(false),  // Path or request description
                 HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTypeMismatch(BadCredentialsException ex, WebRequest webRequest) {
+
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+                webRequest.getDescription(false),  // Path or request description
+                HttpStatus.FORBIDDEN,
+                AuthenticationConstants.AUTHENTICATION_FAILED,
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
