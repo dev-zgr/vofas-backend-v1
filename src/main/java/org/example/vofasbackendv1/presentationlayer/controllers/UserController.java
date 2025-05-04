@@ -84,13 +84,19 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")})
     @PostMapping(path = "/user", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseDTO> createUser(@RequestBody @Valid UserDTO userDTO) {
+    public ResponseEntity<BaseDTO<ResponseDTO>> createUser(@RequestBody @Valid UserDTO userDTO) {
         userService.createUser(userDTO);
         ResponseDTO responseDTO = new ResponseDTO(
-                "201",
+                UserConstants.HTTP_CREATED,
                 UserConstants.USER_CREATED_SUCCESS
         );
-        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
+        BaseDTO<ResponseDTO> baseDTO = new BaseDTO<>(
+                SourceConstants.User,
+                UserConstants.USER_CREATED_SUCCESS,
+                LocalDateTime.now(),
+                responseDTO
+        );
+        return new ResponseEntity<>(baseDTO, HttpStatus.CREATED);
     }
 
     @Operation(

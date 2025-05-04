@@ -3,6 +3,7 @@ package org.example.vofasbackendv1.servicelayer.implementations;
 import org.apache.coyote.BadRequestException;
 import org.example.vofasbackendv1.constants.WebsiteConstants;
 import org.example.vofasbackendv1.data_layer.entities.WebsiteEntity;
+import org.example.vofasbackendv1.data_layer.enums.FeedbackSourceStateEnum;
 import org.example.vofasbackendv1.data_layer.repositories.WebsiteRepository;
 import org.example.vofasbackendv1.exceptions.InvalidParametersException;
 import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
@@ -113,7 +114,7 @@ public class WebsiteServiceImpl implements WebsiteService {
             websiteEntity.setInformativeText(websiteDTO.getInformativeText());
         }
         if (websiteDTO.getState() != null) {
-            websiteEntity.setState(websiteDTO.getState());
+            websiteEntity.setState(FeedbackSourceStateEnum.valueOf(websiteDTO.getState().toUpperCase()));
         }
 
         websiteRepository.save(websiteEntity);

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,8 +33,9 @@ public class FeedbackSourceDTO {
     private String sourceName;
 
     @NotNull
+    @Pattern(regexp = "^(WEBSITE|KIOSK|STATIC_QR)$", message = "Invalid source type")
     @Schema(description = "Type of the source", example = "STATIC_QR")
-    private SourceTypeEnum sourceType;
+    private String sourceType;
 
     @NotBlank
     @Size(min = 2, max = 255)
@@ -43,7 +45,7 @@ public class FeedbackSourceDTO {
     @Schema(description = "Date and time when the source was created", example = "2025-04-28T10:15:30")
     private LocalDateTime createdAt;
 
-    @NotNull
     @Schema(description = "Current state of the feedback source", example = "ACTIVE")
-    private FeedbackSourceStateEnum state;
+    @Pattern(regexp = "^(ACTIVE|PASSIVE)$", message = "Invalid state")
+    private String state;
 }

@@ -1,7 +1,6 @@
 package org.example.vofasbackendv1.presentationlayer.exceptionhandler;
 
 import org.example.vofasbackendv1.constants.AuthenticationConstants;
-import org.example.vofasbackendv1.constants.UserConstants;
 import org.example.vofasbackendv1.exceptions.InvalidSourceException;
 import org.example.vofasbackendv1.exceptions.NoContentException;
 import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
@@ -11,15 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -56,21 +54,31 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(errorResponseDTO);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDTO> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest webRequest) {
+    @ExceptionHandler({MethodArgumentNotValidException.class, HandlerMethodValidationException.class})
+    public ResponseEntity<ErrorResponseDTO> handleValidationExceptions(Exception ex, WebRequest webRequest) {
         Map<String, String> validationErrors = new HashMap<>();
-        List<ObjectError> errorList = ex.getBindingResult().getAllErrors();
-        errorList.forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
-            String message = error.getDefaultMessage();
-            validationErrors.put(fieldName, message);
-        });
+
+        if (ex instanceof MethodArgumentNotValidException manvEx) {
+            manvEx.getBindingResult().getAllErrors().forEach(error -> {
+                String fieldName = ((FieldError) error).getField();
+                String message = error.getDefaultMessage();
+                validationErrors.put(fieldName, message);
+            });
+        } else if (ex instanceof HandlerMethodValidationException hmvEx) {
+            hmvEx.getAllErrors().forEach(error -> {
+                String fieldName = error.toString();
+                String message = error.getDefaultMessage();
+                validationErrors.put(fieldName, message);
+            });
+        }
+
         ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
-                webRequest.getDescription(false),  // Path or request description
-                HttpStatus.BAD_REQUEST,  // HTTP Status for validation error
-                "Validation failed for one or more fields.:" + errorList,  // Error message
-                LocalDateTime.now()  // Timestamp of the error
+                webRequest.getDescription(false),
+                HttpStatus.BAD_REQUEST,
+                "Validation failed: " + validationErrors,
+                LocalDateTime.now()
         );
+
         return new ResponseEntity<>(errorResponseDTO, HttpStatus.BAD_REQUEST);
     }
 
@@ -86,6 +94,7 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
+
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponseDTO> handleTypeMismatch(BadCredentialsException ex, WebRequest webRequest) {
