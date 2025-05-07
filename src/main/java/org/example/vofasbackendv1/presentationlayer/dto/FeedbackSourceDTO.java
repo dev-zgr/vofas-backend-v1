@@ -9,8 +9,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.vofasbackendv1.data_layer.enums.FeedbackSourceStateEnum;
-import org.example.vofasbackendv1.data_layer.enums.SourceTypeEnum;
 
 import java.time.LocalDateTime;
 

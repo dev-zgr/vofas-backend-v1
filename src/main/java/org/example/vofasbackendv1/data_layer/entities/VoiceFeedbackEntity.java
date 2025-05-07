@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.example.vofasbackendv1.data_layer.enums.FeedbackMethodEnum;
 import org.example.vofasbackendv1.data_layer.enums.FeedbackStatusEnum;
+import org.example.vofasbackendv1.data_layer.enums.FeedbackTypeEnum;
 import org.example.vofasbackendv1.data_layer.enums.SentimentStateEnum;
 
 import java.time.LocalDateTime;
@@ -40,11 +41,11 @@ public class VoiceFeedbackEntity extends FeedbackEntity {
     }
 
     public VoiceFeedbackEntity(LocalDateTime feedbackDate, FeedbackStatusEnum feedbackStatus, String content,
-                               SentimentStateEnum sentiment, FeedbackMethodEnum method, Long validationTokenId,
+                               SentimentStateEnum sentiment, FeedbackMethodEnum method, FeedbackTypeEnum typeEnum, Long validationTokenId,
                                LocalDateTime sentToSentimentAnalysis, LocalDateTime receivedFromSentimentAnalysis,
                                String filePath, LocalDateTime sentForTranscription, LocalDateTime receivedFromTranscription) {
 
-        super(feedbackDate, feedbackStatus, content, sentiment, method, validationTokenId,
+        super(feedbackDate, feedbackStatus, content, sentiment, method, typeEnum, validationTokenId,
                 sentToSentimentAnalysis, receivedFromSentimentAnalysis);
 
         this.filePath = filePath;

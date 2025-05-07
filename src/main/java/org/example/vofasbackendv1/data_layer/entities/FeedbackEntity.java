@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.EqualsAndHashCode;
 import org.example.vofasbackendv1.data_layer.enums.FeedbackMethodEnum;
 import org.example.vofasbackendv1.data_layer.enums.FeedbackStatusEnum;
+import org.example.vofasbackendv1.data_layer.enums.FeedbackTypeEnum;
 import org.example.vofasbackendv1.data_layer.enums.SentimentStateEnum;
 
 import java.time.LocalDateTime;
@@ -53,7 +54,13 @@ public class FeedbackEntity {
     @Size(min = 3, max = 32)
     @Column(name = "method", nullable = false, length = 32)
     @Enumerated(EnumType.STRING)
-    private FeedbackMethodEnum method;
+    private FeedbackMethodEnum methodEnum;
+
+    @NotNull
+    @Size(min = 3, max = 32)
+    @Column(name = "type", nullable = false, length = 32)
+    @Enumerated(EnumType.STRING)
+    private FeedbackTypeEnum typeEnum;
 
     @Column(name = "validation_token_id")
     private Long validationTokenId;
@@ -70,19 +77,20 @@ public class FeedbackEntity {
         this.content = "";
         this.sentiment = SentimentStateEnum.NEUTRAL;
         this.feedbackSource = null;
-        this.method = null;
+        this.methodEnum = null;
         this.validationTokenId = null;
         this.sentToSentimentAnalysis = null;
         this.receivedFromSentimentAnalysis = null;
     }
 
-    public FeedbackEntity(LocalDateTime feedbackDate, FeedbackStatusEnum feedbackStatus, String content, SentimentStateEnum sentiment, FeedbackMethodEnum method, Long validationTokenId, LocalDateTime sentToSentimentAnalysis, LocalDateTime receivedFromSentimentAnalysis) {
+    public FeedbackEntity(LocalDateTime feedbackDate, FeedbackStatusEnum feedbackStatus, String content, SentimentStateEnum sentiment, FeedbackMethodEnum methodEnum, FeedbackTypeEnum typeEnum ,Long validationTokenId, LocalDateTime sentToSentimentAnalysis, LocalDateTime receivedFromSentimentAnalysis) {
         this.feedbackDate = feedbackDate;
         this.feedbackStatus = feedbackStatus;
         this.content = content;
         this.sentiment = sentiment;
         this.feedbackSource = null;
-        this.method = method;
+        this.methodEnum = methodEnum;
+        this.typeEnum = typeEnum;
         this.validationTokenId = validationTokenId;
         this.sentToSentimentAnalysis = sentToSentimentAnalysis;
         this.receivedFromSentimentAnalysis = receivedFromSentimentAnalysis;
