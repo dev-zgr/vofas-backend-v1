@@ -70,8 +70,14 @@ public class AuthenticationController {
     })
     @GetMapping(path = "/my-account", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<UserDTO>> getUserByUserToken(@RequestHeader("Authorization") String userToken){
-        //TODO complete this method
-        return null;
+        UserDTO userResponse = authenticationService.getUserByUserToken(userToken);
+        BaseDTO<UserDTO> response = new BaseDTO<>(
+                SourceConstants.User,
+                AuthenticationConstants.MY_ACCOUNT_SUCCESS,
+                LocalDateTime.now(),
+                userResponse
+        );
+        return ResponseEntity.ok(response);
     }
 
 

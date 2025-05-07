@@ -81,7 +81,7 @@ public class FeedbackController {
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
-    @PostMapping(path = "/static-qr", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/feedback", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<Page<FeedbackDTO>>> getAllStaticQRs(
             @RequestParam(value = "sort-by", defaultValue = "feedbackDate") @Pattern(regexp = "^(feedbackDate|feedbackId)$")String sortBy,
             @RequestParam(value = "ascending", defaultValue = "false") boolean ascending,

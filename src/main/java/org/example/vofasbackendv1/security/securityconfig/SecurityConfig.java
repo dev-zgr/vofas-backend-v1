@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/vofas/api/v1/static-qr/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT,"/vofas/api/v1/static-qr/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET,"/vofas/api/v1/static-qr/**").hasAnyAuthority("ADMIN", "COMPANY_REPRESENTATIVE")
+                        .requestMatchers("/vofas/api/v1/my-account/**").hasAnyAuthority("ADMIN", "COMPANY_REPRESENTATIVE")
                         .requestMatchers("/vofas/api/v1/**").permitAll()
                         .requestMatchers("/swagger-ui").permitAll()
                         .anyRequest().authenticated()

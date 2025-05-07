@@ -1,13 +1,16 @@
 package org.example.vofasbackendv1.servicelayer.implementations;
 
 import org.example.vofasbackendv1.components.JwtTokenProvider;
+import org.example.vofasbackendv1.constants.SourceConstants;
 import org.example.vofasbackendv1.data_layer.entities.UserEntity;
 import org.example.vofasbackendv1.data_layer.repositories.UserRepository;
 import org.example.vofasbackendv1.exceptions.InvalidSourceException;
+import org.example.vofasbackendv1.exceptions.InvalidTokenException;
 import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
 import org.example.vofasbackendv1.presentationlayer.dto.AuthenticationDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.AuthenticationRequestDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
+import org.example.vofasbackendv1.presentationlayer.mappers.UserMapper;
 import org.example.vofasbackendv1.servicelayer.interfaces.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -54,8 +57,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public UserDTO getUserByUserToken(String userToken) throws ResourceNotFoundException {
-        return null;
+    public UserDTO getUserByUserToken(String userToken) throws ResourceNotFoundException, InvalidTokenException {
+        if (userToken == null || !userToken.startsWith("Bearer ")) {
+            throw new InvalidTokenException(userToken);
+        }
+
+        String token = userToken.substring(7);
+        if (!jwtTokenProvider.validateToken(token)) {
+            throw new InvalidTokenException(userToken);
+        }
+
+        String userEmail = jwtTokenProvider.getUsernameFromToken(token);
+        return userRepository.findUserEntitiesByEmail(userEmail)
+                .map(userEntity -> UserMapper.entityToDTO(userEntity, new UserDTO()))
+                .orElseThrow(() -> new ResourceNotFoundException(SourceConstants.User, "user token", token));
     }
 
     @Override

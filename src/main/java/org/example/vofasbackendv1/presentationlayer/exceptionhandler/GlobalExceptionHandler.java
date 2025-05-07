@@ -2,6 +2,7 @@ package org.example.vofasbackendv1.presentationlayer.exceptionhandler;
 
 import org.example.vofasbackendv1.constants.AuthenticationConstants;
 import org.example.vofasbackendv1.exceptions.InvalidSourceException;
+import org.example.vofasbackendv1.exceptions.InvalidTokenException;
 import org.example.vofasbackendv1.exceptions.NoContentException;
 import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
 import org.example.vofasbackendv1.presentationlayer.dto.ErrorResponseDTO;
@@ -105,9 +106,20 @@ public class GlobalExceptionHandler {
                 AuthenticationConstants.AUTHENTICATION_FAILED,
                 LocalDateTime.now()
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponseDTO> handleInvalidToken(InvalidTokenException ex, WebRequest webRequest) {
+
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+                webRequest.getDescription(false),
+                HttpStatus.FORBIDDEN,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
 
 
     @ExceptionHandler(Exception.class)
