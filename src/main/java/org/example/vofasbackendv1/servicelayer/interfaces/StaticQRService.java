@@ -13,7 +13,7 @@ public interface StaticQRService {
 
     Page<StaticQRDTO> getAllStaticQRs(String state, String sortBy, boolean ascending, int pageNo) throws NoContentException;
 
-    StaticQRDTO getStaticQRByFeedbackSourceID(Long feedbackSourceID) throws ResourceNotFoundException, InvalidSourceException;
+    StaticQRDTO getStaticQRByFeedbackSourceID(Long feedbackSourceID) throws ResourceNotFoundException;
 
     Boolean createStaticQR(StaticQRDTO staticQRDTO) throws InvalidParameterException;
 
