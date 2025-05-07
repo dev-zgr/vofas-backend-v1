@@ -3,9 +3,11 @@ package org.example.vofasbackendv1.servicelayer.implementations;
 import org.example.vofasbackendv1.components.JwtTokenProvider;
 import org.example.vofasbackendv1.data_layer.entities.UserEntity;
 import org.example.vofasbackendv1.data_layer.repositories.UserRepository;
+import org.example.vofasbackendv1.exceptions.InvalidSourceException;
 import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
 import org.example.vofasbackendv1.presentationlayer.dto.AuthenticationDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.AuthenticationRequestDTO;
+import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
 import org.example.vofasbackendv1.servicelayer.interfaces.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -49,5 +51,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 expiresAt,
                 user.getRoleEnum().name()
         );
+    }
+
+    @Override
+    public UserDTO getUserByUserToken(String userToken) throws ResourceNotFoundException {
+        return null;
+    }
+
+    @Override
+    public UserDTO updateUserByToken(String userToken, UserDTO userDTO) throws InvalidSourceException, ResourceNotFoundException {
+        return null;
     }
 }

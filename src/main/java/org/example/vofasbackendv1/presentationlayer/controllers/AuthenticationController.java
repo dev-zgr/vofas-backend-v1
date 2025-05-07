@@ -10,6 +10,7 @@ import org.example.vofasbackendv1.constants.SourceConstants;
 import org.example.vofasbackendv1.presentationlayer.dto.AuthenticationDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.AuthenticationRequestDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
+import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
 import org.example.vofasbackendv1.servicelayer.interfaces.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -55,10 +56,41 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    // TODO get account jwt token
-    // TODO update account by jwt token
+    @Operation(
+            summary = "Get User by User validation token",
+            description = "Used to get user details for given JWT token."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
+            @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request"),
+            @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "HTTP Status Forbidden"),
+            @ApiResponse(responseCode = "404", description = "HTTP Status Not Found"),
+            @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
+    })
+    @GetMapping(path = "/my-account", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseDTO<UserDTO>> getUserByUserToken(@RequestHeader("Authorization") String userToken){
+        //TODO complete this method
+        return null;
+    }
 
 
-
+    @Operation(
+            summary = "Update the User by user validation token",
+            description = "Used to update user details for given JWT token."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
+            @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request"),
+            @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "HTTP Status Forbidden"),
+            @ApiResponse(responseCode = "404", description = "HTTP Status Not Found"),
+            @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
+    })
+    @PutMapping(path = "/my-account", consumes = MediaType.APPLICATION_JSON_VALUE ,produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseDTO<UserDTO>> updateUserByUserToken(@RequestHeader("Authorization") String userToken, @RequestBody @Valid UserDTO userDTO){
+        //TODO complete this method
+        return null;
+    }
 
 }
