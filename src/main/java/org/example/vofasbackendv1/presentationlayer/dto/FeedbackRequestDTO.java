@@ -28,7 +28,7 @@ public class FeedbackRequestDTO {
     Long feedbackSourceId;
 
     @NotNull
-    @Pattern(regexp = "^(WEBSITE|KIOSK|STATIC_QR|DYNAMIC_QR)$", message = "Invalid method type")
+    @Pattern(regexp = "^(WEBSITE|STATIC_QR)$", message = "Invalid method type")
     @Schema(description = "Type of the source", example = "STATIC_QR")
     private String feedbackMethod;
 

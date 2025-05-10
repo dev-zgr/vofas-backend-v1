@@ -4,6 +4,8 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +16,7 @@ public class RabbitMQConfig {
     public static final String TEXT_QUEUE = "text.queue";
     public static final String VOICE_ROUTING_KEY = "feedback.voice";
     public static final String TEXT_ROUTING_KEY = "feedback.text";
+
 
     @Bean
     public DirectExchange exchange() {
@@ -38,5 +41,10 @@ public class RabbitMQConfig {
     @Bean
     public Binding textBinding() {
         return BindingBuilder.bind(textQueue()).to(exchange()).with(TEXT_ROUTING_KEY);
+    }
+
+    @Bean
+    public MessageConverter converter(){
+        return new Jackson2JsonMessageConverter();
     }
 }

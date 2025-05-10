@@ -7,13 +7,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
+import org.example.vofasbackendv1.constants.FeedbackConstants;
+import org.example.vofasbackendv1.constants.SourceConstants;
 import org.example.vofasbackendv1.presentationlayer.dto.*;
 import org.example.vofasbackendv1.servicelayer.interfaces.FeedbackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @Tag(name = "Feedback API endpoints", description = "Feedback QR API endpoints")
 @RestController
@@ -36,14 +41,37 @@ public class FeedbackController {
             @ApiResponse(responseCode = "201", description = "HTTP Status Created"),
             @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request"),
             @ApiResponse(responseCode = "401", description = "HTTP Status Forbidden"),
+            @ApiResponse(responseCode = "417", description = "Expectation Failed"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
-    @PostMapping(path = "/feedback", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<ResponseDTO>> processFeedback(@Valid @RequestBody FeedbackRequestDTO feedbackRequestDTO) {
-        // TODO returns 201 with the created static qr details. Only set feedbackSourceID, sourceName, sourceType, description, state, url and informative text fields.
-        // TODO if the static qr found return 200 with the data above.
-        // TODO return 401 if feedback validations such as validation token, website status or something else is valid.
-        return null;
+    @PostMapping(path = "/feedback", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseDTO<ResponseDTO>> processFeedback(@Valid @ModelAttribute FeedbackRequestDTO feedbackRequestDTO){
+        boolean feedbackSaved = feedbackService.saveFeedback(feedbackRequestDTO);
+        ResponseDTO responseDTO;
+        BaseDTO<ResponseDTO> baseDTO;
+        HttpStatus status;
+
+        if (feedbackSaved) {
+            responseDTO = new ResponseDTO(
+                    FeedbackConstants.HTTP_CREATED,
+                    FeedbackConstants.FEEDBACK_SAVE_SUCCESS
+            );
+            status = HttpStatus.CREATED;
+        } else {
+            responseDTO = new ResponseDTO(
+                    FeedbackConstants.HTTP_EXPECTATION_FAILED,
+                    FeedbackConstants.EXPECTATION_FAILED_MESSAGE
+            );
+            status = HttpStatus.EXPECTATION_FAILED;
+        }
+
+        baseDTO = new BaseDTO<>(
+                SourceConstants.FEEDBACK,
+                feedbackSaved ? FeedbackConstants.FEEDBACK_SAVE_SUCCESS : FeedbackConstants.EXPECTATION_FAILED_MESSAGE,
+                LocalDateTime.now(),
+                responseDTO
+        );
+        return new ResponseEntity<>(baseDTO, status);
     }
 
     @Operation(
@@ -81,7 +109,7 @@ public class FeedbackController {
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
-    @PostMapping(path = "/feedback", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/feedback", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<Page<FeedbackDTO>>> getAllStaticQRs(
             @RequestParam(value = "sort-by", defaultValue = "feedbackDate") @Pattern(regexp = "^(feedbackDate|feedbackId)$")String sortBy,
             @RequestParam(value = "ascending", defaultValue = "false") boolean ascending,

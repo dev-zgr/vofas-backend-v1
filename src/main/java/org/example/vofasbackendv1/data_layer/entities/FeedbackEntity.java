@@ -32,7 +32,6 @@ public class FeedbackEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Size(min = 5, max = 20)
     @Column(name = "feedback_status", nullable = false, length = 20)
     private FeedbackStatusEnum feedbackStatus;
 
@@ -41,7 +40,6 @@ public class FeedbackEntity {
     private String content;
 
     @Enumerated(EnumType.STRING)
-    @Size(min = 5, max = 32)
     @Column(name = "sentiment", length = 20)
     private SentimentStateEnum sentiment;
 
@@ -51,13 +49,11 @@ public class FeedbackEntity {
     private FeedbackSourceEntity feedbackSource;
 
     @NotNull
-    @Size(min = 3, max = 32)
     @Column(name = "method", nullable = false, length = 32)
     @Enumerated(EnumType.STRING)
     private FeedbackMethodEnum methodEnum;
 
     @NotNull
-    @Size(min = 3, max = 32)
     @Column(name = "type", nullable = false, length = 32)
     @Enumerated(EnumType.STRING)
     private FeedbackTypeEnum typeEnum;
@@ -75,7 +71,7 @@ public class FeedbackEntity {
         this.feedbackDate = LocalDateTime.now();
         this.feedbackStatus = null;
         this.content = "";
-        this.sentiment = SentimentStateEnum.NEUTRAL;
+        this.sentiment = null;
         this.feedbackSource = null;
         this.methodEnum = null;
         this.validationTokenId = null;

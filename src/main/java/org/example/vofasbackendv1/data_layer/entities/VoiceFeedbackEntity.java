@@ -26,11 +26,9 @@ public class VoiceFeedbackEntity extends FeedbackEntity {
     private String filePath;
 
     @Column(name = "sent_for_transcription")
-    @NotBlank
     private LocalDateTime sentForTranscription;
 
     @Column(name = "received_from_transcription")
-    @NotBlank
     private LocalDateTime receivedFromTranscription;
 
     public VoiceFeedbackEntity() {

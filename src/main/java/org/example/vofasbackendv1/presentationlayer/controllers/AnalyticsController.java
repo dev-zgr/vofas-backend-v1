@@ -7,10 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import org.example.vofasbackendv1.presentationlayer.dto.AnalyticsDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
-import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
 import org.example.vofasbackendv1.servicelayer.interfaces.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +21,7 @@ import java.time.LocalDateTime;
 @RequestMapping(value = "/vofas/api/v1", produces = "application/json")
 @CrossOrigin(origins = "*")
 public class AnalyticsController {
-    private AnalyticsService analyticsService;
+    private finalAnalyticsService analyticsService;
 
     @Autowired
     public AnalyticsController (AnalyticsService analyticsService) {
