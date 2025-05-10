@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @RequestMapping(value = "/vofas/api/v1", produces = "application/json")
 @CrossOrigin(origins = "*")
 public class AnalyticsController {
-    private finalAnalyticsService analyticsService;
+    private final AnalyticsService analyticsService;
 
     @Autowired
     public AnalyticsController (AnalyticsService analyticsService) {
