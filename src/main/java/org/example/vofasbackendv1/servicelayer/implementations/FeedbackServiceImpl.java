@@ -71,6 +71,9 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public Boolean saveFeedback(FeedbackRequestDTO feedbackRequestDTO) throws InvalidSourceException, ResourceNotFoundException {
         FeedbackSourceEntity feedbackSource = getFeedbackSource(feedbackRequestDTO);
+        if (feedbackSource.getState() == FeedbackSourceStateEnum.PASSIVE){
+            throw new InvalidSourceException(SourceConstants.FEEDBACK, "FeedbackSource state is PASSIVE");
+        }
         String artifact;
         try {
             artifact = processFeedbackContent(feedbackRequestDTO);

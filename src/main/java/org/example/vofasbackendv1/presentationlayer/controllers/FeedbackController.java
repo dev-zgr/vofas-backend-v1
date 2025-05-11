@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 @CrossOrigin(origins = "*")
 public class FeedbackController {
 
-    private FeedbackService feedbackService;
+    private final FeedbackService feedbackService;
 
     @Autowired
     public FeedbackController(FeedbackService feedbackService) {
