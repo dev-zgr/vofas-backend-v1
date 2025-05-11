@@ -76,7 +76,7 @@ public class FeedbackController {
 
     @Operation(
             summary = "Get Feedback by ID",
-            description = "Creates a new Feedback Entity or VoiceFeedbackEntity based on the provided request.")
+            description = "Returns the feedback entity with the given ID.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
             @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request"),
@@ -85,22 +85,29 @@ public class FeedbackController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
     @GetMapping(path = "/feedback/{feedbackID}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<FeedbackDTO>> processFeedback(
+    public ResponseEntity<BaseDTO<FeedbackDTO>> getFeedbackByID(
             @PathVariable("feedbackID") @Min(0) Long feedbackID
 
     ) {
-        //TODO authorization is performed by security config automatically
-        //TODO return 200 with FeedbackDTO or VoiceFeedbackDTO if value is found.
-        //TODO 400 bad data is returned automatically on validation checks.
-        //TODO return 404 not found if feedback is not found
-        //TODO just throw any exception if - no need for catch since global exception handler does - required
-        return null;
+        FeedbackDTO feedbackDTO = feedbackService.getFeedbackByFeedbackID(feedbackID);
+
+        if (feedbackDTO == null) {
+            return ResponseEntity.status(404).body(new BaseDTO<>("SYSTEM", "Feedback not found", LocalDateTime.now(), null));
+        }
+
+        BaseDTO<FeedbackDTO> response = new BaseDTO<>();
+        response.setSourceName("SYSTEM");
+        response.setMessage("Feedback fetched successfully");
+        response.setRequestedAt(LocalDateTime.now());
+        response.setContent(feedbackDTO);
+
+        return ResponseEntity.ok(response);
     }
 
 
     @Operation(
             summary = "Fetch All Feedbacks by certain filters & pagination and sorting",
-            description = "Fetches all Static QRs based on their state (active or passive), with sorting and pagination."
+            description = "Filters the feedbacks based on the given filters and returns the fetched feedbacks."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
@@ -109,18 +116,31 @@ public class FeedbackController {
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
-    @PostMapping(path = "/feedback", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<Page<FeedbackDTO>>> getAllStaticQRs(
+    @GetMapping(path = "/feedback", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<BaseDTO<Page<FeedbackDTO>>> getAllFeedbacks(
             @RequestParam(value = "sort-by", defaultValue = "feedbackDate") @Pattern(regexp = "^(feedbackDate|feedbackId)$")String sortBy,
             @RequestParam(value = "ascending", defaultValue = "false") boolean ascending,
             @RequestParam(value = "page-no", defaultValue = "0") @Min(0) int pageNo,
             @RequestBody FeedbackFilterDTO feedbackFilterDTO) {
-        //TODO return the value based on the filterDTO and make sure to make sorting ascending and page-no
-        //TODO 401 Unauthorized is performed by security config automatically you dont need to implement
-        //TODO return 200 NO Content if page is empty
-        //TODO throw invalid parameter exception if feedbackFilterDTO's fields aren't valid you dont need to catch the exception.Exceptions caught by global exception handlers
-        // TODO if there are any other exceptions: if you can fix the situation catch it and fix it, if you can't just throw it it'll be handled by global exception handler.
-        return null;
+        Page<FeedbackDTO> feedbackDTOPage = feedbackService.getAllFeedbacks(sortBy, ascending, pageNo, feedbackFilterDTO);
+
+        if (feedbackDTOPage == null || feedbackDTOPage.isEmpty()) {
+            BaseDTO<Page<FeedbackDTO>> baseDTO = new BaseDTO<>(
+                    SourceConstants.FEEDBACK,
+                    "No feedbacks found for the given criteria.",
+                    LocalDateTime.now(),
+                    Page.empty()
+            );
+            return new ResponseEntity<>(baseDTO, HttpStatus.NO_CONTENT);
+        }
+
+        BaseDTO<Page<FeedbackDTO>> baseDTO = new BaseDTO<>(
+                SourceConstants.FEEDBACK,
+                "Feedbacks fetched successfully",
+                LocalDateTime.now(),
+                feedbackDTOPage
+        );
+        return new ResponseEntity<>(baseDTO, HttpStatus.OK);
     }
 
     //TODO add Spring Webflux, SSE or WebSocket for real-time feedback updates

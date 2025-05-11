@@ -17,12 +17,16 @@ import org.example.vofasbackendv1.messaging.message.FeedbackProcessingMessage;
 import org.example.vofasbackendv1.presentationlayer.dto.FeedbackDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.FeedbackFilterDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.FeedbackRequestDTO;
+import org.example.vofasbackendv1.presentationlayer.mappers.FeedbackMapper;
 import org.example.vofasbackendv1.servicelayer.interfaces.FeedbackService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,6 +41,7 @@ import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class FeedbackServiceImpl implements FeedbackService {
@@ -61,7 +66,6 @@ public class FeedbackServiceImpl implements FeedbackService {
         this.openAIConnector = openAIConnector;
     }
 
-
     @Override
     public Boolean saveFeedback(FeedbackRequestDTO feedbackRequestDTO) throws InvalidSourceException, ResourceNotFoundException {
         FeedbackSourceEntity feedbackSource = getFeedbackSource(feedbackRequestDTO);
@@ -79,23 +83,50 @@ public class FeedbackServiceImpl implements FeedbackService {
         }
     }
 
-
     @Override
     public FeedbackDTO getFeedbackByFeedbackID(Long feedbackID) throws ResourceNotFoundException {
-        //TODO get feedbacks by feedback id throw ResourceNotFoundException if feedback not found. You don't need to catch exception
-        //TODO since its already handled by the global exception handler.
-        return null;
+        Optional<FeedbackEntity> feedback = feedbackRepository.findById(feedbackID);
+
+        if (feedback.isEmpty()) {
+            throw new ResourceNotFoundException("FeedbackEntity", "feedbackID", String.valueOf(feedbackID));
+        }
+
+        return FeedbackMapper.entityToDTO(feedback.get());
     }
 
     @Override
-    public Page<FeedbackDTO> getAllFeedbacks(String sortBy, boolean ascending, int pageNo, FeedbackFilterDTO filterDTO) throws NoContentException, InvalidParameterException {
-        // TODO: Implement the logic to retrieve a paginated list of feedbacks with optional sorting and filtering.
-        // 1. Validate the input parameters (e.g., sortBy, ascending, pageNo, filterDTO). If any are invalid, throw InvalidParameterException.
-        // 2. Apply filtering logic to query feedbacks based on the criteria provided in filterDTO (e.g., feedback type, date range).
-        // 3. Sort the feedbacks based on the "sortBy" and "ascending" parameters.
-        // 4. Paginate the feedbacks and return a Page<FeedbackDTO> object.
-        // 5. If no feedbacks are found (empty result), throw NoContentException.
-        return null;
+    public Page<FeedbackDTO> getAllFeedbacks(String sortBy, boolean ascending, int pageNo, FeedbackFilterDTO filterDTO) throws NoContentException {
+        validateFeedbackFilters(filterDTO);
+
+        Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, 10, sort);
+
+        Page<FeedbackEntity> feedbackEntities;
+
+        if (filterDTO.getStartDate() != null && filterDTO.getEndDate() != null) {
+            feedbackEntities = feedbackRepository.findByFeedbackDateBetweenAndFilter(
+                    filterDTO.getStartDate(),
+                    filterDTO.getEndDate(),
+                    filterDTO.getFeedbackStatuses(),
+                    filterDTO.getFeedbackMethods(),
+                    filterDTO.getSentiments(),
+                    pageable
+            );
+        }
+        else {
+            feedbackEntities = feedbackRepository.findByFilter(
+                    filterDTO.getFeedbackStatuses(),
+                    filterDTO.getFeedbackMethods(),
+                    filterDTO.getSentiments(),
+                    pageable
+            );
+        }
+
+        if (!feedbackEntities.hasContent()) {
+            throw new NoContentException("Feedback", String.valueOf(pageNo));
+        }
+
+        return feedbackEntities.map(FeedbackMapper::entityToDTO);
     }
 
     @RabbitListener(queues = RabbitMQConfig.TEXT_QUEUE, concurrency = "10")
@@ -280,6 +311,36 @@ public class FeedbackServiceImpl implements FeedbackService {
             return saveVoiceFeedbackFile(file);
         } else {
             throw new InvalidSourceException(SourceConstants.FEEDBACK, FeedbackConstants.INVALID_FEEDBACK_TYPE);
+        }
+    }
+
+    private void validateFeedbackFilters(FeedbackFilterDTO filterDTO) throws InvalidParameterException {
+        Set<String> validFeedbackStatuses = Set.of("RECEIVED", "WAITING_TRANSCRIPTION", "WAITING_SENTIMENT_ANALYSIS", "READY");
+        Set<String> validFeedbackMethods = Set.of("WEBSITE", "KIOSK", "STATIC_QR", "DYNAMIC_QR");
+        Set<String> validSentiments = Set.of("POSITIVE", "NEUTRAL", "NEGATIVE");
+
+        if (filterDTO.getFeedbackStatuses() != null) {
+            for (String status : filterDTO.getFeedbackStatuses()) {
+                if (!validFeedbackStatuses.contains(status)) {
+                    throw new InvalidParameterException("Invalid feedback status: " + status);
+                }
+            }
+        }
+
+        if (filterDTO.getFeedbackMethods() != null) {
+            for (String method : filterDTO.getFeedbackMethods()) {
+                if (!validFeedbackMethods.contains(method)) {
+                    throw new InvalidParameterException("Invalid feedback method: " + method);
+                }
+            }
+        }
+
+        if (filterDTO.getSentiments() != null) {
+            for (String sentiment : filterDTO.getSentiments()) {
+                if (!validSentiments.contains(sentiment)) {
+                    throw new InvalidParameterException("Invalid sentiment: " + sentiment);
+                }
+            }
         }
     }
 }

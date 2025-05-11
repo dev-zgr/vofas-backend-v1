@@ -48,47 +48,25 @@ public class WebsiteController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
     @PostMapping(path = "/website", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<WebsiteDTO>> createWebsite(@RequestBody @Valid WebsiteDTO websiteDTO){
+    public ResponseEntity<BaseDTO<WebsiteDTO>> createWebsite(@RequestBody @Valid WebsiteDTO websiteDTO) throws BadRequestException {
         try {
-            try {
-                WebsiteDTO existingWebsite = websiteService.getWebsite();
-                if (existingWebsite != null) {
-                    throw new BadRequestException(WebsiteConstants.WEBSITE_ALREADY_EXISTS);
-                }
-            } catch (ResourceNotFoundException e) {
-                Boolean isCreated = websiteService.createWebsite(websiteDTO);
-
-                BaseDTO<WebsiteDTO> response = new BaseDTO<>();
-                response.setSourceName("SYSTEM");
-                response.setMessage(WebsiteConstants.WEBSITE_CREATED_SUCCESS);
-                response.setRequestedAt(LocalDateTime.now());
-                response.setContent(websiteDTO);
-
-                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            WebsiteDTO existingWebsite = websiteService.getWebsite();
+            if (existingWebsite != null) {
+                throw new BadRequestException(WebsiteConstants.WEBSITE_ALREADY_EXISTS);
             }
-        } catch (InvalidParametersException e) {
-            BaseDTO<WebsiteDTO> errorResponse = new BaseDTO<>(
-                    "USER",
-                    e.getMessage(),
-                    LocalDateTime.now(),
-                    null
-            );
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        } catch (Exception e) {
-            BaseDTO<WebsiteDTO> errorResponse = new BaseDTO<>(
-                    "USER",
-                    "An unexpected error occurred",
-                    LocalDateTime.now(),
-                    null
-            );
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        } catch (ResourceNotFoundException e) {
+            // No website exists
         }
 
-        BaseDTO<WebsiteDTO> fallbackResponse = new BaseDTO<>();
-        fallbackResponse.setSourceName("SYSTEM");
-        fallbackResponse.setMessage("Unexpected issue occurred during website creation.");
-        fallbackResponse.setRequestedAt(LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(fallbackResponse);
+        websiteService.createWebsite(websiteDTO);
+
+        BaseDTO<WebsiteDTO> response = new BaseDTO<>();
+        response.setSourceName("SYSTEM");
+        response.setMessage(WebsiteConstants.WEBSITE_CREATED_SUCCESS);
+        response.setRequestedAt(LocalDateTime.now());
+        response.setContent(websiteDTO);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(
@@ -108,44 +86,16 @@ public class WebsiteController {
     public ResponseEntity<BaseDTO<WebsiteDTO>> updateWebsiteByID(
             @PathVariable("websiteID") Long websiteID,
             @RequestBody @Valid WebsiteDTO websiteDTO) {
-        try {
-            WebsiteDTO updatedWebsite = websiteService.updateWebsiteByID(websiteID, websiteDTO);
 
-            BaseDTO<WebsiteDTO> response = new BaseDTO<>();
-            response.setSourceName("SYSTEM");
-            response.setMessage("Website updated successfully");
-            response.setRequestedAt(LocalDateTime.now());
-            response.setContent(updatedWebsite);
+        WebsiteDTO updatedWebsite = websiteService.updateWebsiteByID(websiteID, websiteDTO);
 
-            return ResponseEntity.status(HttpStatus.OK).body(response);
+        BaseDTO<WebsiteDTO> response = new BaseDTO<>();
+        response.setSourceName("SYSTEM");
+        response.setMessage(WebsiteConstants.WEBSITE_UPDATED_SUCCESS);
+        response.setRequestedAt(LocalDateTime.now());
+        response.setContent(updatedWebsite);
 
-        } catch (InvalidParametersException e) {
-            BaseDTO<WebsiteDTO> errorResponse = new BaseDTO<>(
-                    "USER",
-                    e.getMessage(),
-                    LocalDateTime.now(),
-                    null
-            );
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-
-        } catch (ResourceNotFoundException e) {
-            BaseDTO<WebsiteDTO> errorResponse = new BaseDTO<>(
-                    "USER",
-                    e.getMessage(),
-                    LocalDateTime.now(),
-                    null
-            );
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-
-        } catch (Exception e) {
-            BaseDTO<WebsiteDTO> errorResponse = new BaseDTO<>(
-                    "USER",
-                    "An unexpected error occurred",
-                    LocalDateTime.now(),
-                    null
-            );
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(
@@ -161,33 +111,15 @@ public class WebsiteController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
     @GetMapping(path = "/website", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<WebsiteDTO>> getWebsite() {
-        try {
-            WebsiteDTO websiteDTO = websiteService.getWebsite();
+    public ResponseEntity<BaseDTO<WebsiteDTO>> getWebsite() throws BadRequestException {
+        WebsiteDTO websiteDTO = websiteService.getWebsite();
 
-            BaseDTO<WebsiteDTO> response = new BaseDTO<>();
-            response.setSourceName("SYSTEM");
-            response.setMessage(WebsiteConstants.WEBSITE_FETCH_SUCCESS);
-            response.setRequestedAt(LocalDateTime.now());
-            response.setContent(websiteDTO);
+        BaseDTO<WebsiteDTO> response = new BaseDTO<>();
+        response.setSourceName("SYSTEM");
+        response.setMessage(WebsiteConstants.WEBSITE_FETCH_SUCCESS);
+        response.setRequestedAt(LocalDateTime.now());
+        response.setContent(websiteDTO);
 
-            return ResponseEntity.ok(response);
-
-        } catch (ResourceNotFoundException e) {
-            BaseDTO<WebsiteDTO> errorResponse = new BaseDTO<>();
-            errorResponse.setSourceName("SYSTEM");
-            errorResponse.setMessage(e.getMessage());
-            errorResponse.setRequestedAt(LocalDateTime.now());
-            errorResponse.setContent(null);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-
-        } catch (Exception e) {
-            BaseDTO<WebsiteDTO> errorResponse = new BaseDTO<>();
-            errorResponse.setSourceName("SYSTEM");
-            errorResponse.setMessage("Internal server error: " + e.getMessage());
-            errorResponse.setRequestedAt(LocalDateTime.now());
-            errorResponse.setContent(null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+        return ResponseEntity.ok(response);
     }
 }

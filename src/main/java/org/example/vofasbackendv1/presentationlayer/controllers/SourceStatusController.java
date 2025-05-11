@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.example.vofasbackendv1.constants.StaticQRConstants;
+import org.example.vofasbackendv1.constants.WebsiteConstants;
 import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.StaticQRDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.WebsiteDTO;
@@ -13,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Tag(name = "Feedback source availability API endpoints", description = "Feedback source availability API endpoints")
@@ -40,10 +43,19 @@ public class SourceStatusController {
     })
     @GetMapping(path = "/status/website", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<WebsiteDTO>> getWebsiteStatus() {
-        // TODO returns 200 with existing website details. Only set feedbackSourceID, sourceName, sourceType, description, state, url and informative text fields.
-        // TODO if the website found return 200 with the data above.
-        //TODO return 404 if no website found keep in mind there is only one or no website.
-        return null;
+        WebsiteDTO websiteDTO = sourceStatusService.getWebsiteStatus();
+
+        if (websiteDTO == null) {
+            return ResponseEntity.status(404).body(new BaseDTO<>("SYSTEM", WebsiteConstants.WEBSITE_NOT_FOUND, LocalDateTime.now(), null));
+        }
+
+        BaseDTO<WebsiteDTO> response = new BaseDTO<>();
+        response.setSourceName("SYSTEM");
+        response.setMessage(WebsiteConstants.WEBSITE_FETCH_SUCCESS);
+        response.setRequestedAt(LocalDateTime.now());
+        response.setContent(websiteDTO);
+
+        return ResponseEntity.ok(response);
     }
 
     @Operation(
@@ -58,10 +70,19 @@ public class SourceStatusController {
     })
     @GetMapping(path = "/status/static-qr/{qr-id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<StaticQRDTO>> getStaticQRStatusByQRID(@PathVariable("qr-id") UUID staticQRID) {
-        // TODO returns 200 with existing static qr details. Only set feedbackSourceID, sourceName, sourceType, description, state, qrID ,location and informative text fields.
-        // TODO if the static found return 200 with the data above.
-        //TODO return 404 if no static found with given qrID.
-        return null;
+        StaticQRDTO staticQRDTO = sourceStatusService.getStaticQRStatusByQRID(staticQRID);
+
+        if (staticQRDTO == null) {
+            return ResponseEntity.status(404).body(new BaseDTO<>("SYSTEM", StaticQRConstants.STATICQR_NOT_FOUND, LocalDateTime.now(), null));
+        }
+
+        BaseDTO<StaticQRDTO> response = new BaseDTO<>();
+        response.setSourceName("SYSTEM");
+        response.setMessage(StaticQRConstants.STATICQR_FETCH_SUCCESS);
+        response.setRequestedAt(LocalDateTime.now());
+        response.setContent(staticQRDTO);
+
+        return ResponseEntity.ok(response);
     }
 
 

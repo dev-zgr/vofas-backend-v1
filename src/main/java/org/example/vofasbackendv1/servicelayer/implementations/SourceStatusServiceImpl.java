@@ -24,11 +24,38 @@ public class SourceStatusServiceImpl implements SourceStatusService {
 
     @Override
     public WebsiteDTO getWebsiteStatus() {
-        return null;
+        return websiteRepository.findAll()
+                .stream()
+                .findFirst()
+                .map(website -> {
+                    WebsiteDTO websiteDTO = new WebsiteDTO();
+                    websiteDTO.setFeedbackSourceId(website.getFeedbackSourceId());
+                    websiteDTO.setSourceName(website.getSourceName());
+                    websiteDTO.setSourceType(website.getSourceType().toString());
+                    websiteDTO.setDescription(website.getDescription());
+                    websiteDTO.setState(website.getState().toString());
+                    websiteDTO.setUrl(website.getUrl());
+                    websiteDTO.setInformativeText(website.getInformativeText());
+                    return websiteDTO;
+                })
+                .orElse(null);
     }
 
     @Override
     public StaticQRDTO getStaticQRStatusByQRID(UUID staticQRID) {
-        return null;
+        return staticQRRepository.findByQrID(staticQRID)
+                .map(staticQR -> {
+                    StaticQRDTO staticQRDTO = new StaticQRDTO();
+                    staticQRDTO.setFeedbackSourceId(staticQR.getFeedbackSourceId());
+                    staticQRDTO.setSourceName(staticQR.getSourceName());
+                    staticQRDTO.setSourceType(staticQR.getSourceType().toString());
+                    staticQRDTO.setDescription(staticQR.getDescription());
+                    staticQRDTO.setState(staticQR.getState().toString());
+                    staticQRDTO.setQrID(staticQR.getQrID());
+                    staticQRDTO.setLocation(staticQR.getLocation());
+                    staticQRDTO.setInformativeText(staticQR.getInformativeText());
+                    return staticQRDTO;
+                })
+                .orElse(null);
     }
 }
