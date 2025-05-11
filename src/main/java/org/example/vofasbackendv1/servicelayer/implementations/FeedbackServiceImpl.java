@@ -310,7 +310,10 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         if (feedbackRequestDTO.getFeedbackType().equals(FeedbackTypeEnum.TEXT.toString())) {
             validateFileExtension(file, ".txt");
-            return new String(file.getBytes(), StandardCharsets.UTF_8);
+            return new String(file.getBytes(), StandardCharsets.UTF_8)
+                    .replaceAll("[\\r\\n]+", " ")  // replace newlines with space
+                    .replaceAll("\"", "\\\\\"")    // escape double quotes
+                    .trim();
         } else if (feedbackRequestDTO.getFeedbackType().equals(FeedbackTypeEnum.VOICE.toString())) {
             validateFileExtension(file, ".wav");
             return saveVoiceFeedbackFile(file);
