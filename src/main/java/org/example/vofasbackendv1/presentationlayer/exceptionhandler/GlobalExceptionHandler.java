@@ -1,10 +1,7 @@
 package org.example.vofasbackendv1.presentationlayer.exceptionhandler;
 
 import org.example.vofasbackendv1.constants.AuthenticationConstants;
-import org.example.vofasbackendv1.exceptions.InvalidSourceException;
-import org.example.vofasbackendv1.exceptions.InvalidTokenException;
-import org.example.vofasbackendv1.exceptions.NoContentException;
-import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
+import org.example.vofasbackendv1.exceptions.*;
 import org.example.vofasbackendv1.presentationlayer.dto.ErrorResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -115,6 +112,19 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponse = new ErrorResponseDTO(
                 webRequest.getDescription(false),
                 HttpStatus.FORBIDDEN,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+
+    @ExceptionHandler(ResourceAlreadyExistException.class)
+    public ResponseEntity<ErrorResponseDTO> handleResourceAlreadyExistException(ResourceAlreadyExistException ex, WebRequest webRequest) {
+
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO(
+                webRequest.getDescription(false),
+                HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
                 LocalDateTime.now()
         );

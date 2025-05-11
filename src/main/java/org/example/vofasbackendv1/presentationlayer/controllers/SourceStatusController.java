@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.example.vofasbackendv1.constants.SourceConstants;
 import org.example.vofasbackendv1.constants.StaticQRConstants;
 import org.example.vofasbackendv1.constants.WebsiteConstants;
 import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
@@ -44,17 +45,11 @@ public class SourceStatusController {
     @GetMapping(path = "/status/website", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<WebsiteDTO>> getWebsiteStatus() {
         WebsiteDTO websiteDTO = sourceStatusService.getWebsiteStatus();
-
-        if (websiteDTO == null) {
-            return ResponseEntity.status(404).body(new BaseDTO<>("SYSTEM", WebsiteConstants.WEBSITE_NOT_FOUND, LocalDateTime.now(), null));
-        }
-
         BaseDTO<WebsiteDTO> response = new BaseDTO<>();
-        response.setSourceName("SYSTEM");
+        response.setSourceName(SourceConstants.WEBSITE);
         response.setMessage(WebsiteConstants.WEBSITE_FETCH_SUCCESS);
         response.setRequestedAt(LocalDateTime.now());
         response.setContent(websiteDTO);
-
         return ResponseEntity.ok(response);
     }
 
@@ -71,17 +66,11 @@ public class SourceStatusController {
     @GetMapping(path = "/status/static-qr/{qr-id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<StaticQRDTO>> getStaticQRStatusByQRID(@PathVariable("qr-id") UUID staticQRID) {
         StaticQRDTO staticQRDTO = sourceStatusService.getStaticQRStatusByQRID(staticQRID);
-
-        if (staticQRDTO == null) {
-            return ResponseEntity.status(404).body(new BaseDTO<>("SYSTEM", StaticQRConstants.STATICQR_NOT_FOUND, LocalDateTime.now(), null));
-        }
-
         BaseDTO<StaticQRDTO> response = new BaseDTO<>();
-        response.setSourceName("SYSTEM");
+        response.setSourceName(SourceConstants.STATIC_QR);
         response.setMessage(StaticQRConstants.STATICQR_FETCH_SUCCESS);
         response.setRequestedAt(LocalDateTime.now());
         response.setContent(staticQRDTO);
-
         return ResponseEntity.ok(response);
     }
 

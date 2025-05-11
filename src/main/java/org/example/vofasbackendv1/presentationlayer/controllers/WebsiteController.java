@@ -3,23 +3,19 @@ package org.example.vofasbackendv1.presentationlayer.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.apache.coyote.BadRequestException;
+import jakarta.validation.constraints.Min;
+import org.example.vofasbackendv1.constants.SourceConstants;
 import org.example.vofasbackendv1.constants.WebsiteConstants;
-import org.example.vofasbackendv1.exceptions.InvalidParametersException;
-import org.example.vofasbackendv1.exceptions.ResourceNotFoundException;
 import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
-import org.example.vofasbackendv1.presentationlayer.dto.ResponseDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.WebsiteDTO;
+import org.example.vofasbackendv1.servicelayer.interfaces.WebsiteService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.example.vofasbackendv1.servicelayer.interfaces.StaticQRService;
-import org.example.vofasbackendv1.servicelayer.interfaces.WebsiteService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 
@@ -29,7 +25,7 @@ import java.time.LocalDateTime;
 @CrossOrigin(origins = "*")
 public class WebsiteController {
 
-    private WebsiteService websiteService;
+    private final WebsiteService websiteService;
 
     @Autowired
     public WebsiteController(WebsiteService websiteService) {
@@ -48,24 +44,13 @@ public class WebsiteController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
     @PostMapping(path = "/website", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<WebsiteDTO>> createWebsite(@RequestBody @Valid WebsiteDTO websiteDTO) throws BadRequestException {
-        try {
-            WebsiteDTO existingWebsite = websiteService.getWebsite();
-            if (existingWebsite != null) {
-                throw new BadRequestException(WebsiteConstants.WEBSITE_ALREADY_EXISTS);
-            }
-        } catch (ResourceNotFoundException e) {
-            // No website exists
-        }
-
-        websiteService.createWebsite(websiteDTO);
-
+    public ResponseEntity<BaseDTO<WebsiteDTO>> createWebsite(@RequestBody @Valid WebsiteDTO websiteDTO) {
+        WebsiteDTO createdWebsite = websiteService.createWebsite(websiteDTO);
         BaseDTO<WebsiteDTO> response = new BaseDTO<>();
-        response.setSourceName("SYSTEM");
+        response.setSourceName(SourceConstants.WEBSITE);
         response.setMessage(WebsiteConstants.WEBSITE_CREATED_SUCCESS);
         response.setRequestedAt(LocalDateTime.now());
-        response.setContent(websiteDTO);
-
+        response.setContent(createdWebsite);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -84,17 +69,15 @@ public class WebsiteController {
     })
     @PutMapping(path = "/website/{websiteID}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<WebsiteDTO>> updateWebsiteByID(
-            @PathVariable("websiteID") Long websiteID,
+            @PathVariable("websiteID") @Min(0) Long websiteID,
             @RequestBody @Valid WebsiteDTO websiteDTO) {
 
         WebsiteDTO updatedWebsite = websiteService.updateWebsiteByID(websiteID, websiteDTO);
-
         BaseDTO<WebsiteDTO> response = new BaseDTO<>();
-        response.setSourceName("SYSTEM");
+        response.setSourceName(SourceConstants.WEBSITE);
         response.setMessage(WebsiteConstants.WEBSITE_UPDATED_SUCCESS);
         response.setRequestedAt(LocalDateTime.now());
         response.setContent(updatedWebsite);
-
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -111,11 +94,10 @@ public class WebsiteController {
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
     @GetMapping(path = "/website", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BaseDTO<WebsiteDTO>> getWebsite() throws BadRequestException {
+    public ResponseEntity<BaseDTO<WebsiteDTO>> getWebsite() {
         WebsiteDTO websiteDTO = websiteService.getWebsite();
-
         BaseDTO<WebsiteDTO> response = new BaseDTO<>();
-        response.setSourceName("SYSTEM");
+        response.setSourceName(SourceConstants.WEBSITE);
         response.setMessage(WebsiteConstants.WEBSITE_FETCH_SUCCESS);
         response.setRequestedAt(LocalDateTime.now());
         response.setContent(websiteDTO);

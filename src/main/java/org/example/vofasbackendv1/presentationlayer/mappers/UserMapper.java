@@ -1,9 +1,7 @@
 package org.example.vofasbackendv1.presentationlayer.mappers;
 
-import org.apache.catalina.User;
 import org.example.vofasbackendv1.data_layer.entities.UserEntity;
 import org.example.vofasbackendv1.data_layer.enums.RoleEnum;
-import org.example.vofasbackendv1.exceptions.InvalidParametersException;
 import org.example.vofasbackendv1.presentationlayer.dto.UserDTO;
 
 public class UserMapper {

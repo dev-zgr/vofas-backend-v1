@@ -10,6 +10,7 @@ public class FeedbackConstants {
     public static final String INVALID_FEEDBACK_CONTENT_TXT = "Text feedbacks accepts .txt files only";
     public static final String EXPECTATION_FAILED_MESSAGE = "Expectation failed, please try again later";
     public static final String NULL_CONTENT = "Content cannot be null";
+    public static final String ATTEMPTED_TO_UPDATE_STATIC_FIELDS = "Attemted to update static fields";
 
     public static final String HTTP_OK = "200";
     public static final String HTTP_CREATED = "201";

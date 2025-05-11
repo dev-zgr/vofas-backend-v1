@@ -1,9 +1,12 @@
 package org.example.vofasbackendv1.presentationlayer.dto;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.example.vofasbackendv1.data_layer.enums.FeedbackMethodEnum;
 import org.example.vofasbackendv1.data_layer.enums.FeedbackStatusEnum;
 import org.example.vofasbackendv1.data_layer.enums.FeedbackTypeEnum;
