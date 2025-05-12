@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.vofasbackendv1.constants.AuthenticationConstants;
 import org.example.vofasbackendv1.constants.SourceConstants;
+import org.example.vofasbackendv1.constants.UserConstants;
 import org.example.vofasbackendv1.presentationlayer.dto.AuthenticationDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.AuthenticationRequestDTO;
 import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
@@ -89,14 +90,19 @@ public class AuthenticationController {
             @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
             @ApiResponse(responseCode = "400", description = "HTTP Status Bad Request"),
             @ApiResponse(responseCode = "401", description = "HTTP Status Unauthorized"),
-            @ApiResponse(responseCode = "403", description = "HTTP Status Forbidden"),
             @ApiResponse(responseCode = "404", description = "HTTP Status Not Found"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
     @PutMapping(path = "/my-account", consumes = MediaType.APPLICATION_JSON_VALUE ,produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<UserDTO>> updateUserByUserToken(@RequestHeader("Authorization") String userToken, @RequestBody @Valid UserDTO userDTO){
-        //TODO complete this method
-        return null;
+        UserDTO updatedUserDTO = authenticationService.updateUserByToken(userToken, userDTO);
+        BaseDTO<UserDTO> baseDTO = new BaseDTO<>(
+                SourceConstants.User,
+                UserConstants.USER_UPDATED_SUCCESS,
+                LocalDateTime.now(),
+                updatedUserDTO
+        );
+        return ResponseEntity.ok(baseDTO);
     }
 
 }

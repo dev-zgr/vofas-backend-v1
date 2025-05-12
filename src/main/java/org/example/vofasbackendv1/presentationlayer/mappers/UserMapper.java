@@ -29,7 +29,6 @@ public class UserMapper {
         if (userDTO == null) {
             return null;
         }
-        RoleEnum roleEnum = RoleEnum.valueOf(userDTO.getRoleEnum());
         userEntity.setFirstName(userDTO.getFirstName().trim());
         userEntity.setLastName(userDTO.getLastName().trim());
         userEntity.setEmail(userDTO.getEmail().trim());
@@ -40,7 +39,7 @@ public class UserMapper {
         userEntity.setCity(userDTO.getCity().trim());
         userEntity.setPostalCode(userDTO.getPostalCode().trim());
         userEntity.setCountry(userDTO.getCountry().trim());
-        userEntity.setRoleEnum(roleEnum);
+        userEntity.setRoleEnum(RoleEnum.valueOf(userDTO.getRoleEnum()));
         return userEntity;
     }
 }

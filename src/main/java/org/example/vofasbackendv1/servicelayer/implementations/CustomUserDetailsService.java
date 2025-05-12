@@ -25,14 +25,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<UserEntity> user = userRepository.findUserEntitiesByEmail(email);
+    public UserDetails loadUserByUsername(String userID) throws UsernameNotFoundException {
+        Optional<UserEntity> user = userRepository.findById(Long.valueOf(userID));
         if(user.isPresent()){
             UserEntity userEntity = user.get();
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(userEntity.getRoleEnum().name()));
             return new User(userEntity.getEmail(), user.get().getPassword(), authorities);
         }else{
-            throw new UsernameNotFoundException("User not found with email: " + email);
+            throw new UsernameNotFoundException("User not found with userID: " + userID);
         }
     }
 }

@@ -81,7 +81,7 @@ public class UserServiceImpl implements UserService {
     public Boolean deleteUserByUserID(Long userID) throws InvalidParametersException, ResourceNotFoundException {
         Optional<UserEntity> optionalUser = userRepository.findById(userID);
         if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("User", "userID", String.valueOf(userID));
+            throw new ResourceNotFoundException(SourceConstants.User, "userID", String.valueOf(userID));
         }
         userRepository.deleteById(userID);
         return true;
@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
     public UserDTO updateUserByUserID(Long userID, UserDTO userDTO) throws InvalidParametersException, ResourceNotFoundException {
         Optional<UserEntity> optionalUser = userRepository.findById(userID);
         if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("User", "userID", String.valueOf(userID));
+            throw new ResourceNotFoundException(SourceConstants.User, "userID", String.valueOf(userID));
         }
         if(!userDTO.getRoleEnum().equals(optionalUser.get().getRoleEnum().toString())){
             throw new InvalidSourceException(SourceConstants.User, UserConstants.USER_ROLE_CANNOT_BE_CHANGED);

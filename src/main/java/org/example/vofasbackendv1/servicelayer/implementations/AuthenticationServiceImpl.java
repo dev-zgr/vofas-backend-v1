@@ -2,6 +2,7 @@ package org.example.vofasbackendv1.servicelayer.implementations;
 
 import org.example.vofasbackendv1.components.JwtTokenProvider;
 import org.example.vofasbackendv1.constants.SourceConstants;
+import org.example.vofasbackendv1.constants.UserConstants;
 import org.example.vofasbackendv1.data_layer.entities.UserEntity;
 import org.example.vofasbackendv1.data_layer.repositories.UserRepository;
 import org.example.vofasbackendv1.exceptions.InvalidSourceException;
@@ -17,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -38,15 +40,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthenticationDTO authenticate(AuthenticationRequestDTO authenticationRequestDTO) {
         String email = authenticationRequestDTO.getEmail();
         String password = authenticationRequestDTO.getPassword();
-        authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
-        );
         Optional<UserEntity> userEntityOptional = userRepository.findUserEntitiesByEmail(email);
-        if(userEntityOptional.isEmpty()){
-            throw new ResourceNotFoundException("User not found", "email", email);
+        if (userEntityOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User not found", "userID", email);
         }
         UserEntity user = userEntityOptional.get();
-        String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRoleEnum().name());
+        authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getUserID(), password)
+        );
+        String token = jwtTokenProvider.generateToken(user.getUserID(), user.getRoleEnum().name());
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(1);
         return new AuthenticationDTO(
                 LocalDateTime.now(),
@@ -67,14 +69,39 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new InvalidTokenException(userToken);
         }
 
-        String userEmail = jwtTokenProvider.getUsernameFromToken(token);
-        return userRepository.findUserEntitiesByEmail(userEmail)
+        String userID = jwtTokenProvider.getUsernameFromToken(token);
+        return userRepository.findById(Long.valueOf(userID))
                 .map(userEntity -> UserMapper.entityToDTO(userEntity, new UserDTO()))
                 .orElseThrow(() -> new ResourceNotFoundException(SourceConstants.User, "user token", token));
     }
 
     @Override
-    public UserDTO updateUserByToken(String userToken, UserDTO userDTO) throws InvalidSourceException, ResourceNotFoundException {
-        return null;
+    public UserDTO updateUserByToken(String userToken, UserDTO userDTO) throws InvalidSourceException, ResourceNotFoundException, InvalidParameterException {
+        if (userToken == null || !userToken.startsWith("Bearer ")) {
+            throw new InvalidSourceException(SourceConstants.AUTHENTICATION, "Invalid authentication token");
+        }
+        String token = userToken.substring(7);
+        String userID = jwtTokenProvider.getUsernameFromToken(token);
+        Optional<UserEntity> userEntityOptional = userRepository.findById(Long.valueOf(userID));
+        if (userEntityOptional.isEmpty()) {
+            throw new ResourceNotFoundException(SourceConstants.User, "userID", userID);
+        }
+        UserEntity userEntity = userEntityOptional.get();
+        if (userDTO.getUserID() != null && (userEntity.getUserID().longValue() != userDTO.getUserID().longValue())) {
+            throw new InvalidSourceException(SourceConstants.User, "userID can't be changed");
+        } else if (userDTO.getRoleEnum() != null && !userDTO.getRoleEnum().equals(userEntity.getRoleEnum().name())) {
+            throw new InvalidSourceException(SourceConstants.User, "User role can't be changed");
+        }
+
+        if (!userDTO.getEmail().equals(userEntity.getEmail())) {
+            var existingOtherUser = userRepository.findUserEntitiesByEmail(userDTO.getEmail());
+            if (existingOtherUser.isPresent() && !existingOtherUser.get().getUserID().equals(userEntity.getUserID())) {
+                throw new InvalidSourceException(SourceConstants.User, UserConstants.USER_ALREADY_EXIST);
+            }
+        }
+
+        UserEntity updatedUserEntity = UserMapper.dtoToEntity(userDTO, userEntity);
+        updatedUserEntity = userRepository.save(updatedUserEntity);
+        return UserMapper.entityToDTO(updatedUserEntity, new UserDTO());
     }
 }
