@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -56,15 +57,17 @@ public class FeedbackServiceImpl implements FeedbackService {
     private final FeedbackRepository feedbackRepository;
     private final WebsiteRepository websiteRepository;
     private final StaticQRRepository staticQRRepository;
+    private final SimpMessagingTemplate messagingTemplate;
     private final OpenAIConnector openAIConnector;
 
     @Autowired
-    public FeedbackServiceImpl(RabbitTemplate rabbitTemplate, FeedbackRepository feedbackRepository, WebsiteRepository websiteRepository, StaticQRRepository staticQRRepository, VoiceFeedbackRepository voiceFeedbackRepository, OpenAIConnector openAIConnector) {
+    public FeedbackServiceImpl(RabbitTemplate rabbitTemplate, FeedbackRepository feedbackRepository, WebsiteRepository websiteRepository, StaticQRRepository staticQRRepository, VoiceFeedbackRepository voiceFeedbackRepository, SimpMessagingTemplate messagingTemplate, OpenAIConnector openAIConnector) {
         this.rabbitTemplate = rabbitTemplate;
         this.feedbackRepository = feedbackRepository;
         this.websiteRepository = websiteRepository;
         this.staticQRRepository = staticQRRepository;
         this.voiceFeedbackRepository = voiceFeedbackRepository;
+        this.messagingTemplate = messagingTemplate;
         this.openAIConnector = openAIConnector;
     }
 
@@ -167,6 +170,8 @@ public class FeedbackServiceImpl implements FeedbackService {
             feedbackEntity.setSentToSentimentAnalysis(sentToSentimentAnalysis);
             feedbackEntity.setReceivedFromSentimentAnalysis(receivedFromSentimentAnalysis);
             feedbackRepository.save(feedbackEntity);
+            messagingTemplate.convertAndSend("/topic/feedback", FeedbackMapper.entityToDTO(feedbackEntity));
+
         }
     }
 
@@ -227,6 +232,8 @@ public class FeedbackServiceImpl implements FeedbackService {
             voiceFeedbackEntity.setSentForTranscription(sentToTranscriptionAt);
             voiceFeedbackEntity.setReceivedFromTranscription(receivedFromTranscriptionAnalysis);
             voiceFeedbackRepository.save(voiceFeedbackEntity);
+            messagingTemplate.convertAndSend("/topic/feedback", FeedbackMapper.entityToDTO(voiceFeedbackEntity));
+
         }
     }
 
