@@ -1,5 +1,6 @@
 package org.example.vofasbackendv1.servicelayer.implementations;
 
+import jakarta.annotation.PostConstruct;
 import org.example.vofasbackendv1.constants.SourceConstants;
 import org.example.vofasbackendv1.constants.UserConstants;
 import org.example.vofasbackendv1.data_layer.entities.UserEntity;
@@ -37,6 +38,25 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
+    @PostConstruct
+    public void initializeUserAccount() {
+        List<UserEntity> adminUsers = userRepository.findUserEntitiesByRoleEnum(RoleEnum.ADMIN);
+        if (!adminUsers.isEmpty()) {
+            UserEntity defaultAdminUser = new UserEntity();
+            defaultAdminUser.setFirstName("ADMIN");
+            defaultAdminUser.setLastName("ADMIN");
+            defaultAdminUser.setEmail("admin@admin.com");
+            defaultAdminUser.setPassword("admin123");
+            defaultAdminUser.setAddressFirstLine("1st admin street.");
+            defaultAdminUser.setAddressSecondLine("2nd Lane");
+            defaultAdminUser.setDistrict("Sample District");
+            defaultAdminUser.setCity("Sample City");
+            defaultAdminUser.setPostalCode("00000");
+            defaultAdminUser.setCountry("Turkey");
+            defaultAdminUser.setRoleEnum(RoleEnum.ADMIN);
+            userRepository.save(defaultAdminUser);
+        }
+    }
 
     @Override
     public Page<UserDTO> getAllUser(String sortBy, boolean ascending, int pageNo) throws NoContentException, InvalidParametersException {
@@ -93,7 +113,7 @@ public class UserServiceImpl implements UserService {
         if (optionalUser.isEmpty()) {
             throw new ResourceNotFoundException(SourceConstants.User, "userID", String.valueOf(userID));
         }
-        if(!userDTO.getRoleEnum().equals(optionalUser.get().getRoleEnum().toString())){
+        if (!userDTO.getRoleEnum().equals(optionalUser.get().getRoleEnum().toString())) {
             throw new InvalidSourceException(SourceConstants.User, UserConstants.USER_ROLE_CANNOT_BE_CHANGED);
         }
 
@@ -101,11 +121,10 @@ public class UserServiceImpl implements UserService {
         if (existingOtherUser.isPresent() && !existingOtherUser.get().getUserID().equals(userID)) {
             throw new InvalidSourceException(SourceConstants.User, UserConstants.USER_ALREADY_EXIST);
         }
-        UserEntity existingUser = UserMapper.dtoToEntity(userDTO,optionalUser.get());
+        UserEntity existingUser = UserMapper.dtoToEntity(userDTO, optionalUser.get());
         UserEntity updatedUser = userRepository.save(existingUser);
         return UserMapper.entityToDTO(updatedUser, new UserDTO());
     }
-
 
 
 }

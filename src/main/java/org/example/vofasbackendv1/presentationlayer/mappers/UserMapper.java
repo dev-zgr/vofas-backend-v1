@@ -15,7 +15,7 @@ public class UserMapper {
         userDTO.setEmail(userEntity.getEmail());
         userDTO.setPassword(userEntity.getPassword());
         userDTO.setAddressFirstLine(userEntity.getAddressFirstLine());
-        userDTO.setAddressLine2(userEntity.getAddressLine2());
+        userDTO.setAddressLine2(userEntity.getAddressSecondLine());
         userDTO.setDistrict(userEntity.getDistrict());
         userDTO.setCity(userEntity.getCity());
         userDTO.setPostalCode(userEntity.getPostalCode());
@@ -34,7 +34,7 @@ public class UserMapper {
         userEntity.setEmail(userDTO.getEmail().trim());
         userEntity.setPassword(userDTO.getPassword().trim());
         userEntity.setAddressFirstLine(userDTO.getAddressFirstLine().trim());
-        userEntity.setAddressLine2(userDTO.getAddressLine2().trim());
+        userEntity.setAddressSecondLine(userDTO.getAddressLine2().trim());
         userEntity.setDistrict(userDTO.getDistrict().trim());
         userEntity.setCity(userDTO.getCity().trim());
         userEntity.setPostalCode(userDTO.getPostalCode().trim());

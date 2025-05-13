@@ -49,7 +49,7 @@ public class UserEntity {
     @Column(name = "address_line_two", length = 64)
     @Size(max = 64)
     @NotBlank
-    private String addressLine2;
+    private String addressSecondLine;
 
     @Column(name = "district", length = 32)
     @NotBlank
@@ -77,7 +77,7 @@ public class UserEntity {
         this.email = "";
         this.password = "";
         this.addressFirstLine = "";
-        this.addressLine2 = "";
+        this.addressSecondLine = "";
         this.district = "";
         this.city = "";
         this.postalCode = "";
@@ -85,13 +85,13 @@ public class UserEntity {
         this.roleEnum = null;
     }
 
-    public UserEntity(String firstName, String lastName, String email, String password, String addressFirstLine, String addressLine2, String district, String city, String postalCode, String country, RoleEnum roleEnum) {
+    public UserEntity(String firstName, String lastName, String email, String password, String addressFirstLine, String addressSecondLine, String district, String city, String postalCode, String country, RoleEnum roleEnum) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
         this.addressFirstLine = addressFirstLine;
-        this.addressLine2 = addressLine2;
+        this.addressSecondLine = addressSecondLine;
         this.district = district;
         this.city = city;
         this.postalCode = postalCode;
