@@ -20,24 +20,28 @@ public interface FeedbackRepository extends JpaRepository<FeedbackEntity, Long>,
     @Query("SELECT f FROM FeedbackEntity f WHERE f.feedbackDate BETWEEN :startDate AND :endDate" +
             " AND (:feedbackStatuses IS NULL OR f.feedbackStatus IN :feedbackStatuses)" +
             " AND (:feedbackMethods IS NULL OR f.methodEnum IN :feedbackMethods)" +
-            " AND (:sentiments IS NULL OR f.sentiment IN :sentiments)")
+            " AND (:sentiments IS NULL OR f.sentiment IN :sentiments)" +
+            " AND (:types IS NULL OR f.typeEnum IN :types)")
     Page<FeedbackEntity> findByFeedbackDateBetweenAndFilter(
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
             @Param("feedbackStatuses") String[] feedbackStatuses,
             @Param("feedbackMethods") String[] feedbackMethods,
             @Param("sentiments") String[] sentiments,
+            @Param("types") String[] types,
             Pageable pageable
     );
 
     @Query("SELECT f FROM FeedbackEntity f WHERE " +
             "(:feedbackStatuses IS NULL OR f.feedbackStatus IN :feedbackStatuses) " +
             "AND (:feedbackMethods IS NULL OR f.methodEnum IN :feedbackMethods) " +
-            "AND (:sentiments IS NULL OR f.sentiment IN :sentiments)")
+            " AND (:sentiments IS NULL OR f.sentiment IN :sentiments)" +
+            " AND (:types IS NULL OR f.typeEnum IN :types)")
     Page<FeedbackEntity> findByFilter(
             @Param("feedbackStatuses") String[] feedbackStatuses,
             @Param("feedbackMethods") String[] feedbackMethods,
             @Param("sentiments") String[] sentiments,
+            @Param("types") String[] types,
             Pageable pageable
     );
 }

@@ -143,6 +143,4 @@ public class FeedbackController {
         return new ResponseEntity<>(baseDTO, HttpStatus.OK);
     }
 
-    //TODO add Spring Webflux, SSE or WebSocket for real-time feedback updates
-
 }

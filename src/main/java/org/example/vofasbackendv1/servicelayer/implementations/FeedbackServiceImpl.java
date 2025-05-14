@@ -53,6 +53,9 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Value("${vofas.storage.filepath}")
     private String filepath;
+
+    @Value("${vofas.page.size}")
+    private int pageSize;
     private final RabbitTemplate rabbitTemplate;
     private final FeedbackRepository feedbackRepository;
     private final WebsiteRepository websiteRepository;
@@ -107,25 +110,26 @@ public class FeedbackServiceImpl implements FeedbackService {
         validateFeedbackFilters(filterDTO);
 
         Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(pageNo, 10, sort);
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
         Page<FeedbackEntity> feedbackEntities;
 
-        if (filterDTO.getStartDate() != null && filterDTO.getEndDate() != null) {
+        if (filterDTO.getStartDate() != null) {
             feedbackEntities = feedbackRepository.findByFeedbackDateBetweenAndFilter(
-                    filterDTO.getStartDate(),
-                    filterDTO.getEndDate(),
+                    filterDTO.getStartDate().atStartOfDay(),
+                    filterDTO.getEndDate() != null ? filterDTO.getEndDate().atTime(23, 59, 59, 999999999) : LocalDateTime.now().plusDays(1),
                     filterDTO.getFeedbackStatuses(),
                     filterDTO.getFeedbackMethods(),
                     filterDTO.getSentiments(),
+                    filterDTO.getTypes(),
                     pageable
             );
-        }
-        else {
+        } else {
             feedbackEntities = feedbackRepository.findByFilter(
                     filterDTO.getFeedbackStatuses(),
                     filterDTO.getFeedbackMethods(),
                     filterDTO.getSentiments(),
+                    filterDTO.getTypes(),
                     pageable
             );
         }
@@ -333,6 +337,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         Set<String> validFeedbackStatuses = Set.of("RECEIVED", "WAITING_TRANSCRIPTION", "WAITING_SENTIMENT_ANALYSIS", "READY");
         Set<String> validFeedbackMethods = Set.of("WEBSITE", "KIOSK", "STATIC_QR", "DYNAMIC_QR");
         Set<String> validSentiments = Set.of("POSITIVE", "NEUTRAL", "NEGATIVE");
+        Set<String> validTypes = Set.of("TEXT", "VOICE");
 
         if (filterDTO.getFeedbackStatuses() != null) {
             for (String status : filterDTO.getFeedbackStatuses()) {
@@ -354,6 +359,14 @@ public class FeedbackServiceImpl implements FeedbackService {
             for (String sentiment : filterDTO.getSentiments()) {
                 if (!validSentiments.contains(sentiment)) {
                     throw new InvalidParameterException("Invalid sentiment: " + sentiment);
+                }
+            }
+        }
+
+        if (filterDTO.getTypes() != null) {
+            for (String type : filterDTO.getTypes()) {
+                if (!validTypes.contains(type)) {
+                    throw new InvalidParameterException("Invalid sentiment: " + type);
                 }
             }
         }
