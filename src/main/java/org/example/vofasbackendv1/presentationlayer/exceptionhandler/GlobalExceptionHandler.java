@@ -5,7 +5,9 @@ import org.example.vofasbackendv1.exceptions.*;
 import org.example.vofasbackendv1.presentationlayer.dto.ErrorResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -117,6 +119,13 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @SendTo("/topic/feedback")
+    public String handleAccessDeniedException(AccessDeniedException ex) {
+        return ex.getMessage();
+    }
+
 
 
     @ExceptionHandler(ResourceAlreadyExistException.class)

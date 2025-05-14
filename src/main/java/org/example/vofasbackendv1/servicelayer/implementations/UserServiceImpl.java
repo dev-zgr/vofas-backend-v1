@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
     @PostConstruct
     public void initializeUserAccount() {
         List<UserEntity> adminUsers = userRepository.findUserEntitiesByRoleEnum(RoleEnum.ADMIN);
-        if (!adminUsers.isEmpty()) {
+        if (adminUsers.isEmpty()) {
             UserEntity defaultAdminUser = new UserEntity();
             defaultAdminUser.setFirstName("ADMIN");
             defaultAdminUser.setLastName("ADMIN");
