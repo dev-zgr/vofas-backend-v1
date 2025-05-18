@@ -18,7 +18,7 @@ public class OpenAIConnector {
 
     @Value("${vofas.openai.key}")
     private String apiKey; // Retrieve the API key from application properties
-    private static final String OPENAI_API_RESPONSE_URL = "https://api.openai.com/v1/responses";
+    private static final String OPENAI_API_RESPONSE_URL = "https://api.openai.com/v1/chat/completions";
     private static final String OPENAI_API_TRANSCRIPTION_URL = "https://api.openai.com/v1/audio/transcriptions"; // The OpenAI API URL
 
 
@@ -29,25 +29,34 @@ public class OpenAIConnector {
     }
 
     public String askFeedbackSentiment(String instructions, String input) {
-        // Prepare headers for the OpenAI API request
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + apiKey);
-        headers.set("Content-Type", "application/json");
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
 
-        // Build the JSON body for the request, including the model parameter
-        String jsonBody = String.format("{" +
-                "\"model\": \"gpt-3.5-turbo\", " +
-                "\"instructions\": \"%s\", " +  // Add comma here
-                "\"input\": \"%s\" }", instructions, input);
+            // Create the request body as per OpenAI chat completion API
+            String body = """
+			{
+				"model": "gpt-3.5-turbo",
+				"messages": [
+					{ "role": "system", "content": "%s" },
+					{ "role": "user", "content": "%s" }
+				]
+			}
+			""".formatted(instructions, input.replace("\"", "\\\""));
 
-        // Wrap the JSON body in HttpEntity
-        HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
-
-        // Make the API call and get the response
-        ResponseEntity<String> response = restTemplate.exchange(OPENAI_API_RESPONSE_URL, HttpMethod.POST, entity, String.class);
-
-        // Return the response text
-        return response.getBody();
+            HttpEntity<String> entity = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    OPENAI_API_RESPONSE_URL,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+            );
+            return response.getBody();
+        } catch (Exception e) {
+            System.err.println("OpenAI API error: " + e.getMessage());
+            return null;
+        }
     }
 
     public String transcribeVoiceFeedback(File audioFile) throws FileNotFoundException {
@@ -69,16 +78,16 @@ public class OpenAIConnector {
 
     public String extractSentiment(String jsonResponse) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(jsonResponse);
-
-            // Navigate through the JSON structure to get the text from the output
-            JsonNode outputNode = rootNode.path("output").get(0); // Get the first element in the "output" array
-            JsonNode contentNode = outputNode.path("content").get(0); // Get the first element in the "content" array
-            // Get the text value
-
-            return contentNode.path("text").asText();  // Return the sentiment (POSITIVE, NEURAL, or NEGATIVE)
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(jsonResponse);
+            return root
+                    .path("choices")
+                    .get(0)
+                    .path("message")
+                    .path("content")
+                    .asText(null);
         } catch (Exception e) {
+            System.err.println("Failed to parse sentiment: " + e.getMessage());
             return null;
         }
     }

@@ -44,7 +44,7 @@ public class FeedbackController {
             @ApiResponse(responseCode = "417", description = "Expectation Failed"),
             @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error")
     })
-    @PostMapping(path = "/feedback", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/feedback", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BaseDTO<ResponseDTO>> processFeedback(@Valid @ModelAttribute FeedbackRequestDTO feedbackRequestDTO){
         boolean feedbackSaved = feedbackService.saveFeedback(feedbackRequestDTO);
         ResponseDTO responseDTO;

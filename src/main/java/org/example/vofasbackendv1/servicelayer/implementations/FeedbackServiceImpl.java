@@ -147,35 +147,42 @@ public class FeedbackServiceImpl implements FeedbackService {
                 "Sonuçlardan sadece birini döndür: POSITIVE, NEUTRAL veya NEGATIVE. " +
                 "Sonuç yalnızca bir kelime olmalı ve hepsi büyük harflerle yazılmalıdır. " +
                 "Boş satır veya ek bilgiye izin yok.";
+
         SentimentStateEnum sentimentStateEnum = null;
         LocalDateTime sentToSentimentAnalysis;
         LocalDateTime receivedFromSentimentAnalysis;
         int retryCount = 0;
         final int MAX_RETRIES = 5;
+
         do {
             sentToSentimentAnalysis = LocalDateTime.now();
             String httpResponse = openAIConnector.askFeedbackSentiment(SENTIMENT_PROMPT, message.getArtifact());
             receivedFromSentimentAnalysis = LocalDateTime.now();
 
-            String sentiment = openAIConnector.extractSentiment(httpResponse).trim();
-            if (sentiment.equals("POSITIVE") || sentiment.equals("NEUTRAL") || sentiment.equals("NEGATIVE")) {
-                sentimentStateEnum = SentimentStateEnum.valueOf(sentiment);
+            String sentiment = openAIConnector.extractSentiment(httpResponse);
+            if (sentiment != null) {
+                sentiment = sentiment.trim();
+                if (sentiment.equals("POSITIVE") || sentiment.equals("NEUTRAL") || sentiment.equals("NEGATIVE")) {
+                    sentimentStateEnum = SentimentStateEnum.valueOf(sentiment);
+                } else {
+                    System.err.println("⚠️ Unrecognized sentiment: " + sentiment);
+                }
+            } else {
+                System.err.println("⚠️ Failed to extract sentiment from OpenAI response: " + httpResponse);
             }
+
             retryCount++;
-            if (retryCount >= MAX_RETRIES) {
-                break;
-            }
-        } while (sentimentStateEnum == null);
+        } while (sentimentStateEnum == null && retryCount < MAX_RETRIES);
+
         Optional<FeedbackEntity> feedbackEntityOptional = feedbackRepository.findById(message.getFeedbackId());
         if (feedbackEntityOptional.isPresent()) {
             FeedbackEntity feedbackEntity = feedbackEntityOptional.get();
-            feedbackEntity.setSentiment(sentimentStateEnum);
+            feedbackEntity.setSentiment(sentimentStateEnum); // will be null if analysis failed
             feedbackEntity.setFeedbackStatus(FeedbackStatusEnum.READY);
             feedbackEntity.setSentToSentimentAnalysis(sentToSentimentAnalysis);
             feedbackEntity.setReceivedFromSentimentAnalysis(receivedFromSentimentAnalysis);
             feedbackRepository.save(feedbackEntity);
             messagingTemplate.convertAndSend("/topic/feedback", FeedbackMapper.entityToDTO(feedbackEntity));
-
         }
     }
 

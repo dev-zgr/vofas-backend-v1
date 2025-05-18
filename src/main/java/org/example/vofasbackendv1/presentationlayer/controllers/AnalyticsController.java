@@ -10,6 +10,7 @@ import org.example.vofasbackendv1.presentationlayer.dto.BaseDTO;
 import org.example.vofasbackendv1.servicelayer.interfaces.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,8 +44,19 @@ public class AnalyticsController {
             @RequestParam("end-date") @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDateTime endDate,
             @RequestParam("interval-days") @Min(1) int intervalDays
     ) {
-        return null;
-        //TODO this controller needs to be implemented
-    }
+        if (startDate.isAfter(endDate)) {
+            return ResponseEntity.badRequest().body(new BaseDTO<>(
+                    "Analytics", "Start date cannot be after end date", LocalDateTime.now(), null));
+        }
 
+        AnalyticsDTO analyticsDTO = analyticsService.getAnalytics(startDate, endDate, intervalDays);
+
+        if (analyticsDTO == null || analyticsDTO.getTimeSeriesStatistics() == null || analyticsDTO.getTimeSeriesStatistics().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new BaseDTO<>(
+                    "Analytics", "No analytics data found for the given range", LocalDateTime.now(), null));
+        }
+
+        return ResponseEntity.ok(new BaseDTO<>(
+                "Analytics", "Data fetched successfully", LocalDateTime.now(), analyticsDTO));
+    }
 }
