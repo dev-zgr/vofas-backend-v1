@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Tag(name = "Analytics API endpoints", description = "Analytics API endpoints")
@@ -40,8 +41,8 @@ public class AnalyticsController {
     })
     @GetMapping(path = "/analytics", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BaseDTO<AnalyticsDTO>> getAnalytics(
-            @RequestParam("start-date") @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDateTime startDate,
-            @RequestParam("end-date") @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDateTime endDate,
+            @RequestParam("start-date") @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
+            @RequestParam("end-date") @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
             @RequestParam("interval-days") @Min(1) int intervalDays
     ) {
         if (startDate.isAfter(endDate)) {
@@ -49,7 +50,7 @@ public class AnalyticsController {
                     "Analytics", "Start date cannot be after end date", LocalDateTime.now(), null));
         }
 
-        AnalyticsDTO analyticsDTO = analyticsService.getAnalytics(startDate, endDate, intervalDays);
+        AnalyticsDTO analyticsDTO = analyticsService.getAnalytics(startDate.atStartOfDay(), endDate.atStartOfDay(), intervalDays);
 
         if (analyticsDTO == null || analyticsDTO.getTimeSeriesStatistics() == null || analyticsDTO.getTimeSeriesStatistics().isEmpty()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new BaseDTO<>(
